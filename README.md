@@ -39,8 +39,12 @@ Only items **without** custom data take part. Enchanted, damaged or renamed item
   `minecraft` is first on purpose, so modded copper turns into vanilla copper. Move it to the end if you would
   rather keep the modded version.
 - **`blacklistMods`** — items of these mods are never replaced and are never used as a replacement.
+- **`blacklistItems`** — item ids that are never replaced, for a single variant that has to stay as it is.
+  Empty by default.
 - **`alternatives`** — tag names that mean the same material, e.g. `aluminum`, `aluminium` and `bauxite` are all
   treated as the same material. Note that the default also treats bauxite (aluminium ore) as aluminium.
+- **`namespaceAliases`** — namespaces that mean the same material. The default treats `c:` and `forge:` as the
+  same, so a mod that ships only one of the two spellings is still grouped with the other one.
 - **`performance.indexCache` / `performance.lazyIndexRefreshSeconds`** — performance tuning only, they do not
   change the result. Leave them alone unless you are troubleshooting.
 
@@ -126,8 +130,11 @@ MIT. Original InstantUnify Reforged by GOOGLEPOX, see the LICENSE file for the f
 
   `minecraft` 放在首位是有意为之：模组铜锭会变成原版铜锭。若你更希望保留模组版本，把它移到最后即可。
 - **`blacklistMods`** —— 这些模组的物品既不会被替换，也不会被用作替换目标。
+- **`blacklistItems`** —— 永远不参与替换的物品 id，用于让某个单独的变体保持原样。默认为空。
 - **`alternatives`** —— 表示同一种材料的标签名，例如 `aluminum`、`aluminium`、`bauxite` 会被视为同一材料。
   注意默认值同时把铝土矿（bauxite）当作铝。
+- **`namespaceAliases`** —— 表示同一种材料的命名空间。默认把 `c:` 与 `forge:` 视为同一套，因此只写了其中
+  一种拼法的模组也能与另一种归到同一组。
 - **`performance.indexCache` / `performance.lazyIndexRefreshSeconds`** —— 纯性能选项，不影响统一结果。
   除排查问题外建议保持默认。
 
