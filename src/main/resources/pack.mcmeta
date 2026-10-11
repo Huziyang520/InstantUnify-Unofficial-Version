@@ -1,0 +1,8 @@
+{
+  "pack": {
+    "description": {
+      "text": "${mod_id}"
+    },
+    "pack_format": 15
+  }
+}

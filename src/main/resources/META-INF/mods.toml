@@ -1,0 +1,38 @@
+modLoader="javafml" #mandatory
+loaderVersion="${loader_version_range}" #mandatory
+license="${mod_license}" #mandatory
+# A URL to refer people to when problems occur with this mod
+issueTrackerURL="https://github.com/Huziyang520/InstantUnify-Unofficial-Version/issues" #optional
+
+[[mods]] #mandatory
+modId="${mod_id}" #mandatory
+version="${mod_version}" #mandatory
+displayName="${mod_name}" #mandatory
+# Displayed in the mod list: homepage button
+displayURL="https://github.com/Huziyang520/InstantUnify-Unofficial-Version" #optional
+# A file name (in the root of the mod JAR) containing a logo for display
+logoFile="icon.png" #optional
+authors="${mod_authors}" #optional
+description='''${mod_description}''' #mandatory
+
+[[dependencies.${mod_id}]]
+    modId="forge"
+    mandatory=true
+    versionRange="${forge_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+# Optional integration: only used for the in-game config screen on the client.
+[[dependencies.${mod_id}]]
+    modId="cloth_config"
+    mandatory=false
+    versionRange="[11,)"
+    ordering="AFTER"
+    side="CLIENT"
