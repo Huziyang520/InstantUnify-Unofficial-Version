@@ -36,5 +36,14 @@
   "instantunify.config.indexCache.tooltip": "喺記憶體度維持材料索引，唔使每次掉落都掃描物品註冊表。淨係排查問題嗰陣先關咗佢。",
   "instantunify.config.lazyIndexRefreshSeconds": "索引刷新間隔",
   "instantunify.config.lazyIndexRefreshSeconds.tooltip": "每隔咁多秒重建一次材料索引。0 代表淨係喺標籤或者設定變更嗰陣重建。",
-  "instantunify.command.reload": "瞬時統一：設定已重載，更新咗 %s 位玩家嘅背包。"
+  "instantunify.command.reload": "瞬時統一：設定已重載，更新咗 %s 位玩家嘅背包。",
+  "instantunify.config.blacklistItems": "物品黑名單",
+  "instantunify.config.blacklistItems.tooltip": "呢啲物品 id 永遠都唔會被替換，例如要原樣保留嘅充能水晶。預設係空。",
+  "instantunify.config.namespaceAliases": "命名空間別名",
+  "instantunify.config.namespaceAliases.tooltip": "代表同一種材料嘅命名空間。每行一組，組內用半角逗號分隔；組內第一個係標準命名空間。",
+  "instantunify.config.openListEditor": "清單編輯器…",
+  "instantunify.editor.title": "編輯清單",
+  "instantunify.editor.done": "完成",
+  "instantunify.editor.cancel": "取消",
+  "instantunify.config.openSettings": "設定"
 }

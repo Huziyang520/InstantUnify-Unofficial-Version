@@ -36,5 +36,14 @@
   "instantunify.config.indexCache.tooltip": "Manter um índice de materiais na memória em vez de varrer o registro de itens a cada drop. Desative apenas para diagnóstico.",
   "instantunify.config.lazyIndexRefreshSeconds": "Intervalo de atualização do índice",
   "instantunify.config.lazyIndexRefreshSeconds.tooltip": "Reconstruir o índice de materiais a cada tantos segundos. 0 reconstrói apenas quando as tags ou a configuração mudam.",
-  "instantunify.command.reload": "InstantUnify: configurações recarregadas, %s inventários de jogadores atualizados."
+  "instantunify.command.reload": "InstantUnify: configurações recarregadas, %s inventários de jogadores atualizados.",
+  "instantunify.config.blacklistItems": "Lista negra de itens",
+  "instantunify.config.blacklistItems.tooltip": "IDs de itens que nunca são substituídos, por exemplo um cristal carregado que deve continuar como está. Vazia por padrão.",
+  "instantunify.config.namespaceAliases": "Aliases de namespaces",
+  "instantunify.config.namespaceAliases.tooltip": "Namespaces que significam o mesmo material. Uma linha por grupo, nomes separados por vírgulas; o primeiro nome de um grupo é o canônico.",
+  "instantunify.config.openListEditor": "Editor de listas...",
+  "instantunify.editor.title": "Editar lista",
+  "instantunify.editor.done": "Concluído",
+  "instantunify.editor.cancel": "Cancelar",
+  "instantunify.config.openSettings": "Configurações"
 }

@@ -5,7 +5,8 @@ import net.minecraftforge.fml.event.config.ModConfigEvent;
 
 /**
  * Rebuilds the derived state when our configuration file is (re)loaded, which covers hand edits, the in-game
- * screen and "/reload". Registered on the mod event bus.
+ * screen and "/reload", and reflows the list values so that every entry has its own line.
+ * Registered on the mod event bus.
  */
 public final class ConfigReloadEventHandler {
 
@@ -13,6 +14,7 @@ public final class ConfigReloadEventHandler {
     public void onConfigLoading(ModConfigEvent.Loading event) {
         if (isOurConfig(event)) {
             ItemUnifier.reload();
+            ConfigFileFormatter.format();
         }
     }
 
@@ -20,6 +22,7 @@ public final class ConfigReloadEventHandler {
     public void onConfigReloading(ModConfigEvent.Reloading event) {
         if (isOurConfig(event)) {
             ItemUnifier.reload();
+            ConfigFileFormatter.format();
         }
     }
 

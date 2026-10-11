@@ -1,5 +1,6 @@
 package com.huziyang520.instantunify;
 
+import java.util.List;
 import java.util.Optional;
 
 import net.minecraft.resources.ResourceLocation;
@@ -42,6 +43,11 @@ public final class ItemUnifier {
         }
         ResourceLocation id = ForgeRegistries.ITEMS.getKey(orig.getItem());
         if (id == null || InstantUnifyConfig.blacklistMods().contains(id.getNamespace())) {
+            return Optional.empty();
+        }
+        // Item level blacklist: lets a single variant stay as it is (e.g. a charged crystal next to the plain one).
+        List<? extends String> blockedItems = InstantUnifyConfig.blacklistItems();
+        if (!blockedItems.isEmpty() && blockedItems.contains(id.toString())) {
             return Optional.empty();
         }
         Item target = INDEX.resolve(orig.getItem());

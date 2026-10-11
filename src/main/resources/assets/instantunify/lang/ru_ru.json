@@ -36,5 +36,14 @@
   "instantunify.config.indexCache.tooltip": "Держать индекс материалов в памяти вместо сканирования реестра предметов при каждой добыче. Отключайте только для диагностики.",
   "instantunify.config.lazyIndexRefreshSeconds": "Интервал обновления индекса",
   "instantunify.config.lazyIndexRefreshSeconds.tooltip": "Перестраивать индекс материалов каждые столько секунд. 0 — только при изменении тегов или настроек.",
-  "instantunify.command.reload": "InstantUnify: настройки перезагружены, обновлено инвентарей игроков: %s."
+  "instantunify.command.reload": "InstantUnify: настройки перезагружены, обновлено инвентарей игроков: %s.",
+  "instantunify.config.blacklistItems": "Чёрный список предметов",
+  "instantunify.config.blacklistItems.tooltip": "Идентификаторы предметов, которые никогда не заменяются, например заряженный кристалл, который должен остаться собой. По умолчанию пусто.",
+  "instantunify.config.namespaceAliases": "Псевдонимы пространств имён",
+  "instantunify.config.namespaceAliases.tooltip": "Пространства имён, означающие один материал. Одна строка на группу, имена через запятую; первое имя группы — каноническое.",
+  "instantunify.config.openListEditor": "Редактор списков...",
+  "instantunify.editor.title": "Редактирование списка",
+  "instantunify.editor.done": "Готово",
+  "instantunify.editor.cancel": "Отмена",
+  "instantunify.config.openSettings": "Настройки"
 }

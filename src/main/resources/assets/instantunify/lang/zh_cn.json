@@ -36,5 +36,14 @@
   "instantunify.config.indexCache.tooltip": "在内存中维护材料索引，而不是每次掉落都扫描物品注册表。仅在排查问题时关闭。",
   "instantunify.config.lazyIndexRefreshSeconds": "索引刷新间隔",
   "instantunify.config.lazyIndexRefreshSeconds.tooltip": "每隔这么多秒重建一次材料索引。0 表示仅在标签或配置变化时重建。",
-  "instantunify.command.reload": "瞬间统一：配置已重载，更新了 %s 名玩家的背包。"
+  "instantunify.command.reload": "瞬间统一：配置已重载，更新了 %s 名玩家的背包。",
+  "instantunify.config.blacklistItems": "物品黑名单",
+  "instantunify.config.blacklistItems.tooltip": "这些物品 id 永远不会被替换，例如需要保持原样的充能水晶。默认为空。",
+  "instantunify.config.namespaceAliases": "命名空间别名",
+  "instantunify.config.namespaceAliases.tooltip": "表示同一种材料的命名空间。每行一组，组内用英文逗号分隔；组内第一个是规范命名空间。",
+  "instantunify.config.openListEditor": "列表编辑器…",
+  "instantunify.editor.title": "编辑列表",
+  "instantunify.editor.done": "完成",
+  "instantunify.editor.cancel": "取消",
+  "instantunify.config.openSettings": "设置"
 }

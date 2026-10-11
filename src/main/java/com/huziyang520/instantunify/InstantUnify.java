@@ -16,6 +16,9 @@ public class InstantUnify {
     public static final String MOD_ID = "instantunify";
     public static final Logger LOG = LogManager.getLogger(MOD_ID);
 
+    // The static accessors are deprecated for removal in later Forge versions, but they are the API this
+    // Minecraft version offers; the constructor injection used on newer versions does not exist yet here.
+    @SuppressWarnings("removal")
     public InstantUnify() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         InstantUnifyConfig.register();

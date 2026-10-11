@@ -18,7 +18,8 @@ import net.minecraft.world.item.Item;
  * Turns an item into its "material fingerprint": the sorted list of tag names that survive the alternatives
  * expansion and the white/black list filtering. Two items are interchangeable when their fingerprints are equal.
  * <p>
- * Regexes and the alternatives map are compiled once and rebuilt only when the configuration changes.
+ * Regexes, the alternatives map and the namespace aliases are compiled once and rebuilt only when the
+ * configuration changes.
  */
 public final class TagNormalizer {
 
@@ -26,17 +27,38 @@ public final class TagNormalizer {
     private volatile Pattern[] whitelist = new Pattern[0];
     private volatile Pattern[] blacklist = new Pattern[0];
     private volatile Map<String, List<String>> alternatives = Collections.emptyMap();
+    private volatile Map<String, String> namespaceAliases = Collections.emptyMap();
 
     public void invalidate() {
         dirty = true;
     }
 
+    // ResourceLocation(String, String) is the constructor this Minecraft version offers.
+    @SuppressWarnings("removal")
     public List<ResourceLocation> normalize(Item item) {
         ensureUpToDate();
 
-        Set<ResourceLocation> own = item.builtInRegistryHolder().tags()
+        Set<ResourceLocation> raw = item.builtInRegistryHolder().tags()
                 .map(TagKey::location)
                 .collect(Collectors.toSet());
+
+        // Tag namespaces that mean the same thing (forge: and c:) are folded into one spelling first, otherwise
+        // an item that ships both spellings has more tag names than an item that ships only one of them and the
+        // two can never end up in the same group.
+        Map<String, String> aliases = this.namespaceAliases;
+        Set<ResourceLocation> own;
+        if (aliases.isEmpty()) {
+            own = raw;
+        } else {
+            own = new HashSet<>(raw.size());
+            for (ResourceLocation name : raw) {
+                String canonical = aliases.getOrDefault(name.getNamespace(), name.getNamespace());
+                own.add(canonical.equals(name.getNamespace())
+                        ? name
+                        : new ResourceLocation(canonical, name.getPath()));
+            }
+        }
+
         Set<ResourceLocation> names = new HashSet<>(own);
 
         // "aluminum" / "aluminium" / "bauxite" are spelled differently by different mods, so every known
@@ -86,6 +108,7 @@ public final class TagNormalizer {
             whitelist = compileAll(InstantUnifyConfig.whitelist());
             blacklist = compileAll(InstantUnifyConfig.blacklist());
             alternatives = buildAlternatives(InstantUnifyConfig.alternatives());
+            namespaceAliases = buildNamespaceAliases(InstantUnifyConfig.namespaceAliases());
             dirty = false;
         }
     }
@@ -125,6 +148,22 @@ public final class TagNormalizer {
                 others.remove(name);
                 if (!others.isEmpty()) {
                     map.put(name, others);
+                }
+            }
+        }
+        return map;
+    }
+
+    private static Map<String, String> buildNamespaceAliases(List<? extends List<? extends String>> configured) {
+        Map<String, String> map = new HashMap<>();
+        for (List<? extends String> group : configured) {
+            if (group.isEmpty()) {
+                continue;
+            }
+            String canonical = group.get(0);
+            for (String alias : group) {
+                if (!alias.equals(canonical)) {
+                    map.put(alias, canonical);
                 }
             }
         }

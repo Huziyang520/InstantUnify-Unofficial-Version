@@ -36,5 +36,14 @@
   "instantunify.config.indexCache.tooltip": "드롭마다 아이템 레지스트리를 탐색하지 않고 재료 색인을 메모리에 유지합니다. 문제 진단 시에만 끄세요.",
   "instantunify.config.lazyIndexRefreshSeconds": "색인 갱신 주기",
   "instantunify.config.lazyIndexRefreshSeconds.tooltip": "이 초마다 재료 색인을 다시 만듭니다. 0이면 태그나 설정이 바뀔 때만 다시 만듭니다.",
-  "instantunify.command.reload": "InstantUnify: 설정을 다시 불러왔고 %s명의 인벤토리를 갱신했습니다."
+  "instantunify.command.reload": "InstantUnify: 설정을 다시 불러왔고 %s명의 인벤토리를 갱신했습니다.",
+  "instantunify.config.blacklistItems": "아이템 블랙리스트",
+  "instantunify.config.blacklistItems.tooltip": "절대 교체되지 않는 아이템 ID입니다. 예를 들어 그대로 두어야 하는 충전된 수정이 있습니다. 기본값은 비어 있습니다.",
+  "instantunify.config.namespaceAliases": "네임스페이스 별칭",
+  "instantunify.config.namespaceAliases.tooltip": "같은 재료를 뜻하는 네임스페이스입니다. 한 줄에 한 그룹, 이름은 쉼표로 구분합니다. 그룹의 첫 이름이 정규 네임스페이스입니다.",
+  "instantunify.config.openListEditor": "목록 편집기...",
+  "instantunify.editor.title": "목록 편집",
+  "instantunify.editor.done": "완료",
+  "instantunify.editor.cancel": "취소",
+  "instantunify.config.openSettings": "설정"
 }

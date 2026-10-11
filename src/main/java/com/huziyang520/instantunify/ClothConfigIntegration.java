@@ -20,23 +20,24 @@ import net.minecraftforge.fml.ModLoadingContext;
  * mod list.
  * <p>
  * Cloth Config is optional: this class is only loaded when the dependency is present (see {@link ClientSetup}),
- * and it is never shaded into the jar. Every entry reads its current value and writes it back immediately, so
- * the screen never shows a stale value and the change is applied on save.
+ * and it is never shaded into the jar. Every entry reads its current value, writes it back immediately and
+ * resets to the value declared in {@link InstantUnifyConfig}, so the screen can never drift from the file.
  * <p>
- * Registered through Forge's own {@code ConfigScreenHandler} extension point, which is what puts the button into
- * the mod list.
+ * Cloth Config's list widget can only append entries, so a button is added to the screen that opens
+ * {@link ListEditorScreen} for inserting entries anywhere and for reordering them.
  */
 public final class ClothConfigIntegration {
 
     private ClothConfigIntegration() {
     }
 
+    @SuppressWarnings("removal")
     public static void register() {
         ModLoadingContext.get().registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class,
-                () -> new ConfigScreenHandler.ConfigScreenFactory(ClothConfigIntegration::createScreen));
+                () -> new ConfigScreenHandler.ConfigScreenFactory((minecraft, parent) -> new ConfigHubScreen(parent)));
     }
 
-    private static Screen createScreen(Minecraft minecraft, Screen parent) {
+    static Screen createScreen(Minecraft minecraft, Screen parent) {
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
                 .setTitle(Component.translatable("instantunify.config.title"));
@@ -46,56 +47,54 @@ public final class ClothConfigIntegration {
         ConfigEntryBuilder entries = builder.entryBuilder();
 
         ConfigCategory lists = builder.getOrCreateCategory(Component.translatable("instantunify.config.category.lists"));
-        lists.addEntry(entries.startStrList(field("blacklist"), new ArrayList<>(InstantUnifyConfig.blacklist()))
-                .setDefaultValue(List.of("minecraft:.+", "forge:glass.+"))
-                .setTooltip(tooltip("blacklist"))
-                .setSaveConsumer(InstantUnifyConfig::setBlacklist)
-                .build());
-        lists.addEntry(entries.startStrList(field("whitelist"), new ArrayList<>(InstantUnifyConfig.whitelist()))
-                .setDefaultValue(List.of("forge:ingots\\/.+", "forge:ores\\/.+"))
-                .setTooltip(tooltip("whitelist"))
-                .setSaveConsumer(InstantUnifyConfig::setWhitelist)
-                .build());
+        lists.addEntry(stringList(entries, "blacklist", InstantUnifyConfig.blacklist(),
+                InstantUnifyConfig.DEFAULT_BLACKLIST, InstantUnifyConfig::setBlacklist));
+        lists.addEntry(stringList(entries, "whitelist", InstantUnifyConfig.whitelist(),
+                InstantUnifyConfig.DEFAULT_WHITELIST, InstantUnifyConfig::setWhitelist));
         lists.addEntry(entries.startEnumSelector(field("listMode"), InstantUnifyConfig.ListMode.class,
                         InstantUnifyConfig.listMode())
+                .setDefaultValue(InstantUnifyConfig.DEFAULT_LIST_MODE)
                 .setEnumNameProvider(value -> Component.translatable(
                         "instantunify.config.listMode." + value.name().toLowerCase(Locale.ROOT)))
                 .setTooltip(tooltip("listMode"))
                 .setSaveConsumer(InstantUnifyConfig::setListMode)
                 .build());
 
-        ConfigCategory general = builder.getOrCreateCategory(Component.translatable("instantunify.config.category.general"));
-        general.addEntry(entries.startStrList(field("preferredMods"), new ArrayList<>(InstantUnifyConfig.preferredMods()))
-                .setDefaultValue(List.of("minecraft", "alltheores"))
-                .setTooltip(tooltip("preferredMods"))
-                .setSaveConsumer(InstantUnifyConfig::setPreferredMods)
-                .build());
-        general.addEntry(entries.startStrList(field("blacklistMods"), new ArrayList<>(InstantUnifyConfig.blacklistMods()))
-                .setDefaultValue(List.of("chisel", "astralsorcery"))
-                .setTooltip(tooltip("blacklistMods"))
-                .setSaveConsumer(InstantUnifyConfig::setBlacklistMods)
-                .build());
-        general.addEntry(entries.startStrList(field("alternatives"), toGroups(InstantUnifyConfig.alternatives()))
-                .setDefaultValue(List.of("aluminum,aluminium,bauxite"))
-                .setTooltip(tooltip("alternatives"))
-                .setSaveConsumer(value -> InstantUnifyConfig.setAlternatives(fromGroups(value)))
-                .build());
+        ConfigCategory mods = builder.getOrCreateCategory(Component.translatable("instantunify.config.category.general"));
+        mods.addEntry(stringList(entries, "preferredMods", InstantUnifyConfig.preferredMods(),
+                InstantUnifyConfig.DEFAULT_PREFERRED_MODS, InstantUnifyConfig::setPreferredMods));
+        mods.addEntry(stringList(entries, "blacklistMods", InstantUnifyConfig.blacklistMods(),
+                InstantUnifyConfig.DEFAULT_BLACKLIST_MODS, InstantUnifyConfig::setBlacklistMods));
+        mods.addEntry(stringList(entries, "blacklistItems", InstantUnifyConfig.blacklistItems(),
+                InstantUnifyConfig.DEFAULT_BLACKLIST_ITEMS, InstantUnifyConfig::setBlacklistItems));
+        mods.addEntry(stringList(entries, "alternatives", toLines(InstantUnifyConfig.alternatives()),
+                toLines(InstantUnifyConfig.DEFAULT_ALTERNATIVES),
+                lines -> InstantUnifyConfig.setAlternatives(fromLines(lines))));
+        mods.addEntry(stringList(entries, "namespaceAliases", toLines(InstantUnifyConfig.namespaceAliases()),
+                toLines(InstantUnifyConfig.DEFAULT_NAMESPACE_ALIASES),
+                lines -> InstantUnifyConfig.setNamespaceAliases(fromLines(lines))));
 
         ConfigCategory events = builder.getOrCreateCategory(Component.translatable("instantunify.config.category.events"));
-        events.addEntry(booleanEntry(entries, "drop", InstantUnifyConfig.drop(), InstantUnifyConfig::setDrop));
-        events.addEntry(booleanEntry(entries, "death", InstantUnifyConfig.death(), InstantUnifyConfig::setDeath));
-        events.addEntry(booleanEntry(entries, "second", InstantUnifyConfig.second(), InstantUnifyConfig::setSecond));
-        events.addEntry(booleanEntry(entries, "change", InstantUnifyConfig.change(), InstantUnifyConfig::setChange));
-        events.addEntry(booleanEntry(entries, "gui", InstantUnifyConfig.gui(), InstantUnifyConfig::setGui));
-        events.addEntry(booleanEntry(entries, "harvest", InstantUnifyConfig.harvest(), InstantUnifyConfig::setHarvest));
+        events.addEntry(booleanEntry(entries, "drop", InstantUnifyConfig.drop(), InstantUnifyConfig.DEFAULT_DROP,
+                InstantUnifyConfig::setDrop));
+        events.addEntry(booleanEntry(entries, "death", InstantUnifyConfig.death(), InstantUnifyConfig.DEFAULT_DEATH,
+                InstantUnifyConfig::setDeath));
+        events.addEntry(booleanEntry(entries, "second", InstantUnifyConfig.second(), InstantUnifyConfig.DEFAULT_SECOND,
+                InstantUnifyConfig::setSecond));
+        events.addEntry(booleanEntry(entries, "change", InstantUnifyConfig.change(), InstantUnifyConfig.DEFAULT_CHANGE,
+                InstantUnifyConfig::setChange));
+        events.addEntry(booleanEntry(entries, "gui", InstantUnifyConfig.gui(), InstantUnifyConfig.DEFAULT_GUI,
+                InstantUnifyConfig::setGui));
+        events.addEntry(booleanEntry(entries, "harvest", InstantUnifyConfig.harvest(), InstantUnifyConfig.DEFAULT_HARVEST,
+                InstantUnifyConfig::setHarvest));
 
         ConfigCategory performance = builder
                 .getOrCreateCategory(Component.translatable("instantunify.config.category.performance"));
         performance.addEntry(booleanEntry(entries, "indexCache", InstantUnifyConfig.indexCache(),
-                InstantUnifyConfig::setIndexCache));
+                InstantUnifyConfig.DEFAULT_INDEX_CACHE, InstantUnifyConfig::setIndexCache));
         performance.addEntry(entries.startIntField(field("lazyIndexRefreshSeconds"),
                         InstantUnifyConfig.lazyIndexRefreshSeconds())
-                .setDefaultValue(0)
+                .setDefaultValue(InstantUnifyConfig.DEFAULT_LAZY_INDEX_REFRESH_SECONDS)
                 .setMin(0)
                 .setMax(86400)
                 .setTooltip(tooltip("lazyIndexRefreshSeconds"))
@@ -105,10 +104,23 @@ public final class ClothConfigIntegration {
         return builder.build();
     }
 
+    private static AbstractConfigListEntry stringList(ConfigEntryBuilder entries, String key, List<? extends String> current,
+            List<String> defaults, Consumer<List<String>> saveConsumer) {
+        return entries.startStrList(field(key), new ArrayList<>(current))
+                .setDefaultValue(new ArrayList<>(defaults))
+                .setTooltip(tooltip(key))
+                .setInsertButtonEnabled(true)
+                .setDeleteButtonEnabled(true)
+                // Lets a new entry be placed in front of the row instead of only at the end of the list.
+                .setInsertInFront(true)
+                .setSaveConsumer(saveConsumer)
+                .build();
+    }
+
     private static AbstractConfigListEntry booleanEntry(ConfigEntryBuilder entries, String key, boolean current,
-            Consumer<Boolean> saveConsumer) {
+            boolean defaultValue, Consumer<Boolean> saveConsumer) {
         return entries.startBooleanToggle(field(key), current)
-                .setDefaultValue(true)
+                .setDefaultValue(defaultValue)
                 .setTooltip(tooltip(key))
                 .setSaveConsumer(saveConsumer)
                 .build();
@@ -123,15 +135,15 @@ public final class ClothConfigIntegration {
     }
 
     /** One line per group, the names of a group separated by commas: {@code aluminum,aluminium,bauxite}. */
-    private static List<String> toGroups(List<? extends List<? extends String>> configured) {
-        List<String> groups = new ArrayList<>(configured.size());
-        for (List<? extends String> group : configured) {
-            groups.add(String.join(",", group));
+    private static List<String> toLines(List<? extends List<? extends String>> groups) {
+        List<String> lines = new ArrayList<>(groups.size());
+        for (List<? extends String> group : groups) {
+            lines.add(String.join(",", group));
         }
-        return groups;
+        return lines;
     }
 
-    private static List<List<String>> fromGroups(List<String> lines) {
+    private static List<List<String>> fromLines(List<String> lines) {
         List<List<String>> groups = new ArrayList<>(lines.size());
         for (String line : lines) {
             List<String> names = new ArrayList<>();

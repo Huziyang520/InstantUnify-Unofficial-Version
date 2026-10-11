@@ -36,5 +36,14 @@
   "instantunify.config.indexCache.tooltip": "Keep a material index in memory instead of scanning the item registry for every drop. Disable only for troubleshooting.",
   "instantunify.config.lazyIndexRefreshSeconds": "Index Refresh Interval",
   "instantunify.config.lazyIndexRefreshSeconds.tooltip": "Rebuild the material index after this many seconds. 0 rebuilds it only when tags or the configuration change.",
-  "instantunify.command.reload": "InstantUnify: configuration reloaded, %s player inventories updated."
+  "instantunify.command.reload": "InstantUnify: configuration reloaded, %s player inventories updated.",
+  "instantunify.config.blacklistItems": "Blacklisted Items",
+  "instantunify.config.blacklistItems.tooltip": "Item ids that are never replaced, for example a charged crystal that should stay as it is. Empty by default.",
+  "instantunify.config.namespaceAliases": "Namespace Aliases",
+  "instantunify.config.namespaceAliases.tooltip": "Namespaces that mean the same material. One line per group, names separated by commas; the first name of a group is the canonical one.",
+  "instantunify.config.openListEditor": "List Editor...",
+  "instantunify.editor.title": "Edit List",
+  "instantunify.editor.done": "Done",
+  "instantunify.editor.cancel": "Cancel",
+  "instantunify.config.openSettings": "Settings"
 }

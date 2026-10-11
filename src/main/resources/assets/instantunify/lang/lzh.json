@@ -36,5 +36,14 @@
   "instantunify.config.indexCache.tooltip": "藏材錄於心，免每墮皆遍察物錄。惟除錯時方閉之。",
   "instantunify.config.lazyIndexRefreshSeconds": "材錄重築之期",
   "instantunify.config.lazyIndexRefreshSeconds.tooltip": "每隔如許秒重築材錄。零者，惟名錄或設置有變乃築。",
-  "instantunify.command.reload": "瞬時統一：設置已復讀，更新行者 %s 人之囊。"
+  "instantunify.command.reload": "瞬時統一：設置已復讀，更新行者 %s 人之囊。",
+  "instantunify.config.blacklistItems": "物之黑名",
+  "instantunify.config.blacklistItems.tooltip": "凡此物之號，終不見代，如充能之晶欲存其本者。初無所錄。",
+  "instantunify.config.namespaceAliases": "名域之別名",
+  "instantunify.config.namespaceAliases.tooltip": "同名域者，一材也。每行一屬，以逗號間之；屬之首者為正。",
+  "instantunify.config.openListEditor": "修名錄…",
+  "instantunify.editor.title": "修名錄",
+  "instantunify.editor.done": "畢",
+  "instantunify.editor.cancel": "罷",
+  "instantunify.config.openSettings": "設置"
 }
