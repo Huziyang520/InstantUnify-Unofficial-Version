@@ -13,7 +13,7 @@ displayURL="https://github.com/Huziyang520/InstantUnify-Unofficial-Version" #opt
 # A file name (in the root of the mod JAR) containing a logo for display
 logoFile="icon.png" #optional
 authors="${mod_authors}" #optional
-description='''${mod_description}''' #mandatory
+description='''${mod_description} 统一不同模组中同名同义的材料物品，使其可以互相堆叠与合成。''' #mandatory
 
 [[dependencies.${mod_id}]]
     modId="forge"
