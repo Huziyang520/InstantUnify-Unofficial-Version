@@ -43,7 +43,7 @@ public final class InstantUnifyConfig {
             // Without this every variant of the same material shares one fingerprint and they all collapse
             // into a single item, which turns every ore into the deepslate one.
             "forge:ores_in_ground\\/.+",
-            "forge:silicon",
+            "forge:silicon\\/.+",
             "c:ores\\/.+",
             "c:ingots\\/.+",
             "c:nuggets\\/.+",
@@ -55,7 +55,7 @@ public final class InstantUnifyConfig {
             "c:plates\\/.+",
             "c:rods\\/.+",
             "c:ores_in_ground\\/.+",
-            "c:silicon");
+            "c:silicon\\/.+");
 
     public static final ListMode DEFAULT_LIST_MODE = ListMode.USE_BOTH_LISTS;
 
@@ -348,8 +348,12 @@ public final class InstantUnifyConfig {
         persist();
     }
 
+    /**
+     * A change only updates the value in memory and drops the caches. Writing the file is left to the caller
+     * (the screen writes once when it closes), because Forge and the mod would otherwise write the same file
+     * at the same time and the file ends up truncated or locked.
+     */
     private static void persist() {
         ItemUnifier.reload();
-        save();
     }
 }

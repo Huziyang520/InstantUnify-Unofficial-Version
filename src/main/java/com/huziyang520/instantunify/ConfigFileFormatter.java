@@ -2,8 +2,10 @@ package com.huziyang520.instantunify;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -16,12 +18,19 @@ import net.minecraftforge.fml.loading.FMLPaths;
  * Forge writes lists inline and offers no way to change that (its writer cannot be replaced through any public
  * API), so the file is reflowed afterwards. This is a pure text transformation: entries are copied verbatim, so
  * values, comments and the order of the keys can not change. Anything not understood is left exactly as it is.
+ * <p>
+ * Forge saves the same file from its own threads, so the new content is written to a temporary file and moved
+ * into place in one step, and every failure is swallowed: a formatting problem may never break the game, and
+ * it may never leave a half written configuration behind.
  */
 public final class ConfigFileFormatter {
 
     private static final Set<String> LIST_KEYS = Set.of(
             "blacklist", "whitelist", "preferredMods", "blacklistMods",
             "blacklistItems", "alternatives", "namespaceAliases");
+
+    private static final int ATTEMPTS = 3;
+    private static final long RETRY_DELAY_MILLIS = 100L;
 
     private ConfigFileFormatter() {
     }
@@ -30,20 +39,53 @@ public final class ConfigFileFormatter {
         return FMLPaths.CONFIGDIR.get().resolve(InstantUnify.MOD_ID + "-common.toml");
     }
 
-    public static void format() {
+    public static synchronized void format() {
         Path file = configFile();
-        try {
-            if (!Files.isRegularFile(file)) {
+        Path temp = file.resolveSibling(file.getFileName() + ".reflow.tmp");
+        for (int attempt = 0; attempt < ATTEMPTS; attempt++) {
+            try {
+                if (!Files.isRegularFile(file)) {
+                    return;
+                }
+                String text = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
+                String reflowed = reflow(text);
+                if (reflowed.equals(text)) {
+                    return;
+                }
+                Files.write(temp, reflowed.getBytes(StandardCharsets.UTF_8));
+                move(temp, file);
                 return;
+            } catch (Exception e) {
+                // Forge may be writing the very same file right now. Back off, and in the end give up quietly.
+                if (attempt == ATTEMPTS - 1) {
+                    InstantUnify.LOG.warn("Left {} as it is: {}", file.getFileName(), e.toString());
+                } else {
+                    try {
+                        Thread.sleep(RETRY_DELAY_MILLIS);
+                    } catch (InterruptedException interrupted) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+                }
+            } finally {
+                deleteQuietly(temp);
             }
-            String text = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
-            String reflowed = reflow(text);
-            if (!reflowed.equals(text)) {
-                Files.write(file, reflowed.getBytes(StandardCharsets.UTF_8));
-            }
-        } catch (IOException | RuntimeException e) {
-            // A formatting problem must never break the game or the configuration itself.
-            InstantUnify.LOG.warn("Could not reformat {}: {}", file, e.toString());
+        }
+    }
+
+    private static void move(Path from, Path to) throws IOException {
+        try {
+            Files.move(from, to, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException e) {
+            Files.move(from, to, StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    private static void deleteQuietly(Path path) {
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException ignored) {
+            // Nothing to do about it.
         }
     }
 
