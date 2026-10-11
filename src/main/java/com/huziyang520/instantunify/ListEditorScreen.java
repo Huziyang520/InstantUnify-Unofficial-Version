@@ -23,10 +23,15 @@ public class ListEditorScreen extends Screen {
 
     private static final int ROW_HEIGHT = 24;
     private static final int TAB_COLUMNS = 4;
+    private static final int PAGE_BUTTON_SIZE = 20;
+    private static final int PAGE_LEFT_X = 10;
+    private static final int PAGE_GAP = 64;
+    private static final int PAGE_RIGHT_X = PAGE_LEFT_X + PAGE_BUTTON_SIZE + PAGE_GAP;
 
     private final Screen parent;
     private final List<Editor> editors = new ArrayList<>();
     private final List<AbstractWidget> rowWidgets = new ArrayList<>();
+    private final List<Button> tabButtons = new ArrayList<>();
 
     private List<String> working = new ArrayList<>();
     private int selected;
@@ -72,22 +77,26 @@ public class ListEditorScreen extends Screen {
             working = new ArrayList<>(editors.get(selected).getter.get());
         }
 
+        tabButtons.clear();
         int tabWidth = (this.width - 20) / TAB_COLUMNS;
         for (int i = 0; i < editors.size(); i++) {
             int column = i % TAB_COLUMNS;
             int row = i / TAB_COLUMNS;
             final int index = i;
-            addRenderableWidget(Button
+            Button tab = Button
                     .builder(Component.translatable("instantunify.config." + editors.get(i).key), button -> select(index))
                     .bounds(10 + column * tabWidth, 22 + row * 22, tabWidth - 2, 20)
-                    .build());
+                    .build();
+            tabButtons.add(tab);
+            addRenderableWidget(tab);
         }
+        updateTabs();
 
         int bottom = this.height - 28;
         addRenderableWidget(Button.builder(Component.literal("<"), button -> changePage(-1))
                 .bounds(10, bottom, 20, 20).build());
         addRenderableWidget(Button.builder(Component.literal(">"), button -> changePage(1))
-                .bounds(32, bottom, 20, 20).build());
+                .bounds(PAGE_RIGHT_X, bottom, 20, 20).build());
         addRenderableWidget(Button.builder(Component.translatable("instantunify.editor.done"), button -> {
             applyWorking();
             onClose();
@@ -153,17 +162,30 @@ public class ListEditorScreen extends Screen {
     }
 
     private void select(int index) {
+        if (index == selected) {
+            return;
+        }
         applyWorking();
         selected = index;
         page = 0;
         working = new ArrayList<>(editors.get(selected).getter.get());
+        updateTabs();
         rebuildRows();
     }
 
-    private void applyWorking() {
-        if (!editors.isEmpty()) {
-            editors.get(selected).setter.accept(new ArrayList<>(working));
+    /** The list that is being edited is shown as a disabled button, like the active tab of a notebook. */
+    private void updateTabs() {
+        for (int i = 0; i < tabButtons.size(); i++) {
+            tabButtons.get(i).active = i != selected;
         }
+    }
+
+    private void applyWorking() {
+        if (editors.isEmpty()) {
+            return;
+        }
+        editors.get(selected).setter.accept(new ArrayList<>(working));
+        InstantUnifyConfig.save();
     }
 
     private void insertAfter(int index) {
@@ -190,9 +212,13 @@ public class ListEditorScreen extends Screen {
     }
 
     private void changePage(int delta) {
-        int pages = Math.max(1, (working.size() + rowsPerPage() - 1) / rowsPerPage());
+        int pages = pageCount();
         page = Math.max(0, Math.min(pages - 1, page + delta));
         rebuildRows();
+    }
+
+    private int pageCount() {
+        return Math.max(1, (working.size() + rowsPerPage() - 1) / rowsPerPage());
     }
 
     @Override
@@ -205,6 +231,10 @@ public class ListEditorScreen extends Screen {
         if (working.isEmpty()) {
             graphics.drawCenteredString(this.font, Component.literal("-"), this.width / 2, rowsTop() + 4, 0x808080);
         }
+        // Page indicator between the two paging buttons, e.g. "2/3".
+        int pageCenterX = PAGE_LEFT_X + PAGE_BUTTON_SIZE + PAGE_GAP / 2;
+        graphics.drawCenteredString(this.font, Component.literal((page + 1) + "/" + pageCount()),
+                pageCenterX, this.height - 22, 0xFFFFFF);
         super.render(graphics, mouseX, mouseY, partialTick);
     }
 
