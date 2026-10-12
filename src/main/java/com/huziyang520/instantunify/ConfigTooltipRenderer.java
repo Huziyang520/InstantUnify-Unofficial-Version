@@ -1,56 +1,56 @@
 package com.huziyang520.instantunify;
 
-import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
-import me.shedaniel.clothconfig2.api.ConfigScreen;
-import me.shedaniel.clothconfig2.api.ScissorsHandler;
-import me.shedaniel.clothconfig2.api.Tooltip;
+import com.mojang.blaze3d.systems.RenderSystem;
+
+import me.shedaniel.clothconfig2.api.AbstractConfigEntry;
+import me.shedaniel.clothconfig2.gui.ClothConfigScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractSelectionList;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 
 /**
  * Draws the hover tooltips of our own configuration screen.
  * <p>
- * Cloth Config hands its tooltips to the vanilla tooltip renderer, whose text is submitted through the deferred
- * render buffer. In some client setups that buffer comes out empty, so the tooltip is drawn with its frame but
- * without any text. Instead of depending on that path, the tooltips Cloth Config collected are taken over here
- * and painted directly, which uses the very same draw call the (visible) entry labels use.
+ * Cloth Config's own tooltips are unusable here, and the reason is in its scissors implementation: the scissor
+ * box is computed with {@code windowHeight - height - y} multiplied by the gui scale again, although the window
+ * height is already in pixels. The clip region therefore lands somewhere else than the code intends, which cuts
+ * the box off or hides it completely, and which is why the result changes as soon as the category tree is
+ * collapsed and the layout shifts.
  * <p>
- * Two things of this screen work against tooltips, both confirmed in Cloth Config's own bytecode:
- * <ul>
- * <li>the category tree is painted <em>after</em> the tooltips, and the whole interface is drawn with the depth
- * test switched off, so anything drawn later simply covers whatever came before it;</li>
- * <li>{@code ScissorsHandler} can leave a clip region behind that cuts the box, which is why tooltips look right
- * once the category tree is collapsed.</li>
- * </ul>
- * The clip is cleared before drawing and the box is flushed before the text is queued, so the order can no longer
- * be mixed up by the frame's render type batching.
- * <p>
- * Only the screen we created is affected, and everything fails back to the default behaviour.
+ * So this screen does not ask Cloth Config for tooltips at all. Every entry is registered here with its text,
+ * the entry under the cursor is looked up through the list widget, and the box is painted after everything else,
+ * with the scissor switched off. Long text is wrapped by the screen, so the box stays readable.
  */
 @OnlyIn(Dist.CLIENT)
 public final class ConfigTooltipRenderer {
 
-    private static final int WRAP_LIMIT = 200;
     private static final int LINE_HEIGHT = 10;
     private static final int BACKGROUND = 0xF0100010;
     private static final int BORDER = 0x505000FF;
     private static final int TEXT = 0xFFFFFF;
 
+    /** The screen the tooltips below belong to, and its tooltip text per entry. */
     private static volatile Screen owner;
-    private static volatile Field tooltips;
-    private static volatile boolean unavailable;
-    private static volatile boolean drawingFailed;
+    private static final Map<AbstractConfigEntry<?>, List<Component>> TOOLTIPS = new IdentityHashMap<>();
+
+    /** The list widget's own look-up of the entry under the mouse, which is protected in the game's list class. */
+    private static final Method entryAtPosition = findEntryAtPosition();
 
     private ConfigTooltipRenderer() {
     }
@@ -59,104 +59,63 @@ public final class ConfigTooltipRenderer {
         MinecraftForge.EVENT_BUS.register(ConfigTooltipRenderer.class);
     }
 
-    /** Marks the screen whose tooltips are drawn here. */
-    static void own(Screen screen) {
+    /** Called once per screen build: the tooltips of the previous screen are dropped with it. */
+    static void own(Screen screen, Map<AbstractConfigEntry<?>, List<Component>> tooltips) {
+        synchronized (TOOLTIPS) {
+            TOOLTIPS.clear();
+            TOOLTIPS.putAll(tooltips);
+        }
         owner = screen;
     }
 
     @SubscribeEvent
     public static void onScreenRender(ScreenEvent.Render.Post event) {
         Screen screen = event.getScreen();
-        if (screen != owner || !(screen instanceof ConfigScreen)) {
+        if (screen != owner || !(screen instanceof ClothConfigScreen clothScreen)) {
             return;
         }
-        List<Tooltip> collected = takeTooltips(screen);
-        if (collected.isEmpty()) {
+        if (entryAtPosition == null) {
             return;
         }
-        GuiGraphics graphics = event.getGuiGraphics();
-        Font font = Minecraft.getInstance().font;
-        // Cloth Config's category tree can leave a clip region behind, which is what cuts the box in half.
-        ScissorsHandler.INSTANCE.clearScissors();
-        for (Tooltip tooltip : collected) {
-            // A single broken tooltip must not swallow the rest of them: the screen's list was already taken
-            // over above, so an exception here would lose the whole frame's tooltips.
-            try {
-                draw(graphics, font, tooltip);
-            } catch (RuntimeException e) {
-                if (!drawingFailed) {
-                    drawingFailed = true;
-                    InstantUnify.LOG.warn("Unable to draw a configuration tooltip, falling back to the game's own "
-                            + "rendering for the remaining ones", e);
-                }
-            }
-        }
-    }
-
-    /**
-     * Removes the collected tooltips from the screen and returns them. Taking them away is what stops Cloth
-     * Config from drawing its frameless-but-textless tooltip on top of ours.
-     */
-    @SuppressWarnings("unchecked")
-    private static List<Tooltip> takeTooltips(Screen screen) {
-        Field field = tooltips;
-        if (field == null) {
-            if (unavailable) {
-                return List.of();
-            }
-            field = findTooltipsField(screen.getClass());
-            if (field == null) {
-                unavailable = true;
-                return List.of();
-            }
-            tooltips = field;
-        }
+        Object hovered;
         try {
-            Object value = field.get(screen);
-            if (!(value instanceof List<?> list) || list.isEmpty()) {
-                return List.of();
-            }
-            List<Tooltip> copy = new ArrayList<>();
-            for (Object element : list) {
-                if (element instanceof Tooltip tooltip) {
-                    copy.add(tooltip);
-                }
-            }
-            ((List<Object>) value).clear();
-            return copy;
+            hovered = entryAtPosition.invoke(clothScreen.listWidget, (double) event.getMouseX(),
+                    (double) event.getMouseY());
         } catch (ReflectiveOperationException | RuntimeException e) {
-            unavailable = true;
-            return List.of();
+            return;
         }
-    }
-
-    private static Field findTooltipsField(Class<?> type) {
-        for (Class<?> current = type; current != null; current = current.getSuperclass()) {
-            try {
-                Field field = current.getDeclaredField("tooltips");
-                field.setAccessible(true);
-                return field;
-            } catch (NoSuchFieldException ignored) {
-                // Keep walking up the hierarchy.
-            } catch (RuntimeException e) {
-                return null;
-            }
+        if (!(hovered instanceof AbstractConfigEntry<?> entry)) {
+            return;
         }
-        return null;
-    }
-
-    private static void draw(GuiGraphics graphics, Font font, Tooltip tooltip) {
-        List<FormattedCharSequence> lines = tooltip.getText();
+        List<Component> lines;
+        synchronized (TOOLTIPS) {
+            lines = TOOLTIPS.get(entry);
+        }
         if (lines == null || lines.isEmpty()) {
             return;
         }
-        int width = 0;
-        for (FormattedCharSequence line : lines) {
-            width = Math.max(width, Math.min(WRAP_LIMIT * 2, font.width(line)));
+        try {
+            draw(event.getGuiGraphics(), Minecraft.getInstance().font, event.getMouseX(), event.getMouseY(), lines);
+        } catch (RuntimeException e) {
+            if (!drawingFailed) {
+                drawingFailed = true;
+                InstantUnify.LOG.warn("Unable to draw a configuration tooltip", e);
+            }
         }
-        int height = lines.size() * LINE_HEIGHT;
-        int x = tooltip.getX() + 12;
-        int y = tooltip.getY() - 12;
+    }
+
+    private static void draw(GuiGraphics graphics, Font font, int mouseX, int mouseY, List<Component> lines) {
+        List<FormattedCharSequence> sequences = new ArrayList<>(lines.size());
+        for (Component line : lines) {
+            sequences.add(line.getVisualOrderText());
+        }
+        int width = 0;
+        for (FormattedCharSequence line : sequences) {
+            width = Math.max(width, font.width(line));
+        }
+        int height = sequences.size() * LINE_HEIGHT;
+        int x = mouseX + 12;
+        int y = mouseY - 12;
 
         int left = x - 4;
         int top = y - 4;
@@ -189,17 +148,34 @@ public final class ConfigTooltipRenderer {
             y -= shift;
         }
 
+        // The scissor is switched off instead of being asked to reset: Cloth Config's own reset path applies the
+        // wrong box again (see the class comment).
+        RenderSystem.disableScissor();
         graphics.fill(left, top, right, bottom, BACKGROUND);
         graphics.fill(left, top, right, top + 1, BORDER);
         graphics.fill(left, bottom - 1, right, bottom, BORDER);
         graphics.fill(left, top + 1, left + 1, bottom - 1, BORDER);
         graphics.fill(right - 1, top + 1, right, bottom - 1, BORDER);
-        // The interface is drawn with the depth test off and its batches are flushed by render type rather than
-        // in the order the shapes were queued, so the text can end up below the box. Flushing here fixes the
-        // order for good: the frame is on screen before the text is even queued.
+        // The interface is drawn with the depth test off and its batches are flushed by render type rather than in
+        // the order shapes were queued, so the frame is forced out before the text is queued.
         graphics.flush();
-        for (int i = 0; i < lines.size(); i++) {
-            graphics.drawString(font, lines.get(i), x, y + i * LINE_HEIGHT, TEXT);
+        for (int i = 0; i < sequences.size(); i++) {
+            graphics.drawString(font, sequences.get(i), x, y + i * LINE_HEIGHT, TEXT);
+        }
+    }
+
+    private static volatile boolean drawingFailed;
+
+    private static Method findEntryAtPosition() {
+        try {
+            Method method = ObfuscationReflectionHelper.findMethod(AbstractSelectionList.class, "getEntryAtPosition",
+                    double.class, double.class);
+            method.setAccessible(true);
+            return method;
+        } catch (RuntimeException e) {
+            InstantUnify.LOG.warn("Unable to look up the entry under the cursor, the configuration tooltips stay "
+                    + "hidden", e);
+            return null;
         }
     }
 }

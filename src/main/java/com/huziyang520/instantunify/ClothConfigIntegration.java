@@ -1,12 +1,13 @@
 package com.huziyang520.instantunify;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
+import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
+import me.shedaniel.clothconfig2.api.AbstractConfigEntry;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
@@ -40,6 +41,12 @@ public final class ClothConfigIntegration {
     /** Width a tooltip line is wrapped at, the same value vanilla uses for item tooltips. */
     private static final int TOOLTIP_WIDTH = 200;
 
+    /**
+     * Tooltips of the screen being built. They are kept here instead of being handed to Cloth Config, whose own
+     * tooltip drawing cannot be used in this layout (see {@link ConfigTooltipRenderer}).
+     */
+    private static final Map<AbstractConfigEntry<?>, List<Component>> PENDING_TOOLTIPS = new IdentityHashMap<>();
+
     private ClothConfigIntegration() {
     }
 
@@ -58,6 +65,7 @@ public final class ClothConfigIntegration {
         builder.setGlobalizedExpanded(true);
         builder.setSavingRunnable(InstantUnifyConfig::save);
         ConfigEntryBuilder entries = builder.entryBuilder();
+        PENDING_TOOLTIPS.clear();
 
         ConfigCategory lists = builder.getOrCreateCategory(Component.translatable("instantunify.config.category.lists"));
         add(lists, entries, "blacklist", stringList(entries, "blacklist", InstantUnifyConfig.blacklist(),
@@ -69,7 +77,6 @@ public final class ClothConfigIntegration {
                 .setDefaultValue(InstantUnifyConfig.DEFAULT_LIST_MODE)
                 .setEnumNameProvider(value -> Component.translatable(
                         "instantunify.config.listMode." + value.name().toLowerCase(Locale.ROOT)))
-                .setTooltipSupplier(tooltipSupplier("listMode"))
                 .setSaveConsumer(InstantUnifyConfig::setListMode)
                 .build());
 
@@ -80,9 +87,6 @@ public final class ClothConfigIntegration {
                 InstantUnifyConfig.DEFAULT_BLACKLIST_MODS, InstantUnifyConfig::setBlacklistMods));
         add(mods, entries, "exemptMods", stringList(entries, "exemptMods", InstantUnifyConfig.exemptMods(),
                 InstantUnifyConfig.DEFAULT_EXEMPT_MODS, InstantUnifyConfig::setExemptMods));
-        add(mods, entries, "sameModNoUnify",
-                booleanEntry(entries, "sameModNoUnify", InstantUnifyConfig.sameModNoUnify(),
-                        InstantUnifyConfig.DEFAULT_SAME_MOD_NO_UNIFY, InstantUnifyConfig::setSameModNoUnify));
         add(mods, entries, "blacklistItems", stringList(entries, "blacklistItems", InstantUnifyConfig.blacklistItems(),
                 InstantUnifyConfig.DEFAULT_BLACKLIST_ITEMS, InstantUnifyConfig::setBlacklistItems));
         add(mods, entries, "alternatives", stringList(entries, "alternatives", toLines(InstantUnifyConfig.alternatives()),
@@ -92,6 +96,10 @@ public final class ClothConfigIntegration {
                 toLines(InstantUnifyConfig.namespaceAliases()),
                 toLines(InstantUnifyConfig.DEFAULT_NAMESPACE_ALIASES),
                 lines -> InstantUnifyConfig.setNamespaceAliases(fromLines(lines))));
+        // Kept at the end of the category on purpose: it is a switch about the lists above.
+        add(mods, entries, "sameModNoUnify",
+                booleanEntry(entries, "sameModNoUnify", InstantUnifyConfig.sameModNoUnify(),
+                        InstantUnifyConfig.DEFAULT_SAME_MOD_NO_UNIFY, InstantUnifyConfig::setSameModNoUnify));
 
         ConfigCategory events = builder.getOrCreateCategory(Component.translatable("instantunify.config.category.events"));
         add(events, entries, "drop",
@@ -117,17 +125,17 @@ public final class ClothConfigIntegration {
                 .setDefaultValue(InstantUnifyConfig.DEFAULT_LAZY_INDEX_REFRESH_SECONDS)
                 .setMin(0)
                 .setMax(86400)
-                .setTooltipSupplier(tooltipSupplier("lazyIndexRefreshSeconds"))
                 .setSaveConsumer(InstantUnifyConfig::setLazyIndexRefreshSeconds)
                 .build());
 
         Screen screen = builder.build();
-        ConfigTooltipRenderer.own(screen);
+        ConfigTooltipRenderer.own(screen, PENDING_TOOLTIPS);
         return screen;
     }
 
     private static void add(ConfigCategory category, ConfigEntryBuilder entries, String key,
             AbstractConfigListEntry control) {
+        PENDING_TOOLTIPS.put(control, wrapped(tooltip(key)));
         category.addEntry(control);
     }
 
@@ -135,7 +143,6 @@ public final class ClothConfigIntegration {
             List<String> defaults, Consumer<List<String>> saveConsumer) {
         return entries.startStrList(field(key), new ArrayList<>(current))
                 .setDefaultValue(new ArrayList<>(defaults))
-                .setTooltipSupplier(tooltipSupplier(key))
                 .setInsertButtonEnabled(true)
                 .setDeleteButtonEnabled(true)
                 // Lets a new entry be placed in front of the row instead of only at the end of the list.
@@ -148,13 +155,8 @@ public final class ClothConfigIntegration {
             boolean defaultValue, Consumer<Boolean> saveConsumer) {
         return entries.startBooleanToggle(field(key), current)
                 .setDefaultValue(defaultValue)
-                .setTooltipSupplier(tooltipSupplier(key))
                 .setSaveConsumer(saveConsumer)
                 .build();
-    }
-
-    private static Supplier<Optional<Component[]>> tooltipSupplier(String key) {
-        return () -> Optional.of(wrapped(tooltip(key)).toArray(new Component[0]));
     }
 
     /**
