@@ -43,9 +43,10 @@ public final class InstantUnifyConfig {
             // Without this every variant of the same material shares one fingerprint and they all collapse
             // into a single item, which turns every ore into the deepslate one.
             "forge:ores_in_ground\\/.+",
-            // Silicon is a tag of its own instead of one of the categories above; the group after it is
-            // optional because the tag is used both bare (forge:silicon) and with a sub path.
-            "forge:silicon(\\/.+)?",
+            // Silicon and silver style materials are tag categories of their own, none of the rows above covers
+            // them. The "<name>\/.+" form also accepts the bare tag (see TagNormalizer), which is what catches
+            // items that are tagged with forge:silicon and nothing else.
+            "forge:silicon\\/.+",
             "c:ores\\/.+",
             "c:ingots\\/.+",
             "c:nuggets\\/.+",
@@ -57,7 +58,7 @@ public final class InstantUnifyConfig {
             "c:plates\\/.+",
             "c:rods\\/.+",
             "c:ores_in_ground\\/.+",
-            "c:silicon(\\/.+)?");
+            "c:silicon\\/.+");
 
     public static final ListMode DEFAULT_LIST_MODE = ListMode.USE_BOTH_LISTS;
 
@@ -139,10 +140,12 @@ public final class InstantUnifyConfig {
     static {
         ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
 
-        BLACKLIST = b.comment("Tag names that shouldn't be unified (supports regex)")
+        BLACKLIST = b.comment("Tag names that shouldn't be unified (supports regex)",
+                "A name written as '<tag>\\/.+' covers the tag itself and everything below it")
                 .defineList("blacklist", DEFAULT_BLACKLIST, STRING_ELEMENT);
 
-        WHITELIST = b.comment("Tag names that should be unified (supports regex)")
+        WHITELIST = b.comment("Tag names that should be unified (supports regex)",
+                "A name written as '<tag>\\/.+' covers the tag itself and everything below it")
                 .defineList("whitelist", DEFAULT_WHITELIST, STRING_ELEMENT);
 
         LIST_MODE = b.comment("How the two lists above are combined")

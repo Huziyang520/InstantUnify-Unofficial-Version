@@ -23,6 +23,9 @@ import net.minecraft.world.item.Item;
  */
 public final class TagNormalizer {
 
+    /** Entries written as {@code <tag>\/.+} cover the tag itself as well as everything below it. */
+    private static final String SUB_TAG_SUFFIX = "\\/.+";
+
     private volatile boolean dirty = true;
     private volatile Pattern[] whitelist = new Pattern[0];
     private volatile Pattern[] blacklist = new Pattern[0];
@@ -121,6 +124,16 @@ public final class TagNormalizer {
             } catch (RuntimeException e) {
                 // A broken regex must not take the whole event handler down, it is skipped with a warning instead.
                 InstantUnify.LOG.warn("Skipping invalid regex '{}': {}", regex, e.getMessage());
+                continue;
+            }
+            if (regex.endsWith(SUB_TAG_SUFFIX)) {
+                String bare = regex.substring(0, regex.length() - SUB_TAG_SUFFIX.length());
+                if (!bare.isEmpty()) {
+                    // "forge:ores\/.+" reads as "forge:ores and everything below it", so the bare tag has to be
+                    // accepted as well: mods tag some items with the bare name only (forge:silicon), and without
+                    // this such an item keeps no material tag at all and can never be unified.
+                    patterns.add(Pattern.compile(Pattern.quote(bare)));
+                }
             }
         }
         return patterns.toArray(new Pattern[0]);
