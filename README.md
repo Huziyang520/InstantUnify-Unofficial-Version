@@ -40,6 +40,10 @@ Only items **without** custom data take part. Enchanted, damaged or renamed item
   `minecraft` is first on purpose, so modded copper turns into vanilla copper. Move it to the end if you would
   rather keep the modded version.
 - **`blacklistMods`** — items of these mods are never replaced and are never used as a replacement.
+- **`exemptMods`** — items of these mods are never replaced, but other mods' items may still turn into them.
+  Meant for a mod that owns a material and should stay as it is (`ae2` and its silicon by default).
+- **`sameModNoUnify`** — on by default: two items of the same mod are never unified with each other. Mods often
+  ship variants that only make sense next to each other.
 - **`blacklistItems`** — item ids that are never replaced, for a single variant that has to stay as it is.
   Empty by default.
 - **`alternatives`** — tag names that mean the same material, e.g. `aluminum`, `aluminium` and `bauxite` are all
@@ -81,6 +85,9 @@ names copied from there can be used directly in `whitelist`, `blacklist` and `al
 
 ## Notes and limitations
 
+- Items are matched by material: the shape (ore, ingot, gem, ...) plus the material name. The tags are used first;
+  when a mod ships no material tag at all the item name decides, so nothing has to be configured per mod. Ores
+  keep the stone / deepslate split, a deepslate ore never turns into a stone one.
 - Items already stored in chests, machines or storage systems are not touched unless `gui` is enabled.
 - Crafting, smelting and machine recipes are not rewritten — that is what Almost Unified is for.
 - When two mods have the same priority, the mod that is loaded first wins.
@@ -132,6 +139,10 @@ MIT. Original InstantUnify Reforged by GOOGLEPOX, see the LICENSE file for the f
 
   `minecraft` 放在首位是有意为之：模组铜锭会变成原版铜锭。若你更希望保留模组版本，把它移到最后即可。
 - **`blacklistMods`** —— 这些模组的物品既不会被替换，也不会被用作替换目标。
+- **`exemptMods`（豁免的模组）** —— 这些模组的物品永远不会被替换，但其他模组的物品可以替换成它们的。
+  用于「拥有某材料、且必须保持原样」的模组（默认是 `ae2` 与它的硅）。
+- **`sameModNoUnify`（同模组物品不统一）** —— 默认开启：同一个模组内的两个物品不会互相统一。
+  模组自带的变体往往只有放在一起才有意义。
 - **`blacklistItems`** —— 永远不参与替换的物品 id，用于让某个单独的变体保持原样。默认为空。
 - **`alternatives`** —— 表示同一种材料的标签名，例如 `aluminum`、`aluminium`、`bauxite` 会被视为同一材料。
   注意默认值同时把铝土矿（bauxite）当作铝。
@@ -169,6 +180,8 @@ Almost Unified 自带一份模组优先级列表，请把它改成与上面的 `
 
 ## 注意事项与限制
 
+- 物品按「材料」匹配：形状（矿石、锭、宝石……）加材料名。优先取标签；模组完全没打材料标签时退回按物品名判断，
+  因此不需要为某个模组单独配置。矿石仍区分石与深板岩，深板岩矿石不会被换成石头矿石。
 - 已经存放在箱子、机器或存储系统里的物品不会被处理，除非开启 `gui`。
 - 合成、烧炼与机器配方不会被改写，那是 Almost Unified 的职责。
 - 当两个模组优先级相同时，先加载的模组胜出。
