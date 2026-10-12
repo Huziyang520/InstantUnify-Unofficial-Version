@@ -41,6 +41,7 @@ public final class ClothConfigIntegration {
     public static void register() {
         ModLoadingContext.get().registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class,
                 () -> new ConfigScreenHandler.ConfigScreenFactory((minecraft, parent) -> new ConfigHubScreen(parent)));
+        ConfigTooltipRenderer.register();
     }
 
     static Screen createScreen(Minecraft minecraft, Screen parent) {
@@ -109,14 +110,14 @@ public final class ClothConfigIntegration {
                 .setSaveConsumer(InstantUnifyConfig::setLazyIndexRefreshSeconds)
                 .build());
 
-        return builder.build();
+        Screen screen = builder.build();
+        ConfigTooltipRenderer.own(screen);
+        return screen;
     }
 
-    /** Adds the control plus the description line that is always visible, tooltip or not. */
     private static void add(ConfigCategory category, ConfigEntryBuilder entries, String key,
             AbstractConfigListEntry control) {
         category.addEntry(control);
-        category.addEntry(entries.startTextDescription(tooltip(key)).build());
     }
 
     private static AbstractConfigListEntry stringList(ConfigEntryBuilder entries, String key, List<? extends String> current,
