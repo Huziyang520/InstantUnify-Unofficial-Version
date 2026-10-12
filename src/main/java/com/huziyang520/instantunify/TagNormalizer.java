@@ -45,6 +45,12 @@ public final class TagNormalizer {
     /** An ore without a ground tag is treated as the stone variant, which is what the tag convention means. */
     private static final String DEFAULT_GROUND = "stone";
 
+    /** Tag name of the ore variant marker, it is a modifier and never a material of its own. */
+    private static final String ORES_IN_GROUND = "ores_in_ground";
+
+    /** Prefix of the key of a material that is only ever named by a bare tag, e.g. forge:silicon. */
+    private static final String BARE_MATERIAL_PREFIX = "material#";
+
     private volatile boolean dirty = true;
     private volatile Pattern[] whitelist = new Pattern[0];
     private volatile Pattern[] blacklist = new Pattern[0];
@@ -136,15 +142,24 @@ public final class TagNormalizer {
         String ground = null;
         String best = null;
         int bestRank = Integer.MAX_VALUE;
+        String bare = null;
         for (ResourceLocation tag : normalize(item)) {
             String path = tag.getPath();
             int slash = path.indexOf('/');
-            if (slash <= 0 || slash == path.length() - 1) {
+            if (slash < 0) {
+                // A tag without a category names a material on its own: forge:silicon. Shape words such as
+                // forge:ingots are categories and must not be read as a material.
+                if (bare == null && !SHAPES.contains(path) && !path.equals(ORES_IN_GROUND)) {
+                    bare = path;
+                }
+                continue;
+            }
+            if (slash == path.length() - 1) {
                 continue;
             }
             String shape = path.substring(0, slash);
             String material = path.substring(slash + 1);
-            if (shape.equals("ores_in_ground")) {
+            if (shape.equals(ORES_IN_GROUND)) {
                 ground = material;
                 continue;
             }
@@ -157,6 +172,10 @@ public final class TagNormalizer {
         if (best != null) {
             // Ores keep the same stone / deepslate split the ores_in_ground tag expresses.
             return bestRank == 0 ? best + "@" + (ground == null ? DEFAULT_GROUND : ground) : best;
+        }
+        if (bare != null) {
+            // Everything that carries that tag is the same material, so the shape plays no part here.
+            return BARE_MATERIAL_PREFIX + bare;
         }
         return nameKey(item);
     }
