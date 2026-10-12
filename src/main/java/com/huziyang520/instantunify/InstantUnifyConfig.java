@@ -43,7 +43,9 @@ public final class InstantUnifyConfig {
             // Without this every variant of the same material shares one fingerprint and they all collapse
             // into a single item, which turns every ore into the deepslate one.
             "forge:ores_in_ground\\/.+",
-            "forge:silicon\\/.+",
+            // Silicon is a tag of its own instead of one of the categories above; the group after it is
+            // optional because the tag is used both bare (forge:silicon) and with a sub path.
+            "forge:silicon(\\/.+)?",
             "c:ores\\/.+",
             "c:ingots\\/.+",
             "c:nuggets\\/.+",
@@ -55,7 +57,7 @@ public final class InstantUnifyConfig {
             "c:plates\\/.+",
             "c:rods\\/.+",
             "c:ores_in_ground\\/.+",
-            "c:silicon\\/.+");
+            "c:silicon(\\/.+)?");
 
     public static final ListMode DEFAULT_LIST_MODE = ListMode.USE_BOTH_LISTS;
 
