@@ -4,9 +4,8 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-
 import me.shedaniel.clothconfig2.api.ConfigScreen;
+import me.shedaniel.clothconfig2.api.ScissorsHandler;
 import me.shedaniel.clothconfig2.api.Tooltip;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -27,9 +26,15 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
  * without any text. Instead of depending on that path, the tooltips Cloth Config collected are taken over here
  * and painted directly, which uses the very same draw call the (visible) entry labels use.
  * <p>
- * The box is pushed 400 units along the z axis while it is painted. That is the same trick vanilla uses to put
- * tooltips above everything else, and it is needed here because the category tree of the screen is drawn after
- * the render hook we use and would otherwise be painted over the box.
+ * Two things of this screen work against tooltips, both confirmed in Cloth Config's own bytecode:
+ * <ul>
+ * <li>the category tree is painted <em>after</em> the tooltips, and the whole interface is drawn with the depth
+ * test switched off, so anything drawn later simply covers whatever came before it;</li>
+ * <li>{@code ScissorsHandler} can leave a clip region behind that cuts the box, which is why tooltips look right
+ * once the category tree is collapsed.</li>
+ * </ul>
+ * The clip is cleared before drawing and the box is flushed before the text is queued, so the order can no longer
+ * be mixed up by the frame's render type batching.
  * <p>
  * Only the screen we created is affected, and everything fails back to the default behaviour.
  */
@@ -41,8 +46,6 @@ public final class ConfigTooltipRenderer {
     private static final int BACKGROUND = 0xF0100010;
     private static final int BORDER = 0x505000FF;
     private static final int TEXT = 0xFFFFFF;
-    /** Same depth offset vanilla uses for tooltips. */
-    private static final float Z_OFFSET = 400.0F;
 
     private static volatile Screen owner;
     private static volatile Field tooltips;
@@ -73,6 +76,8 @@ public final class ConfigTooltipRenderer {
         }
         GuiGraphics graphics = event.getGuiGraphics();
         Font font = Minecraft.getInstance().font;
+        // Cloth Config's category tree can leave a clip region behind, which is what cuts the box in half.
+        ScissorsHandler.INSTANCE.clearScissors();
         for (Tooltip tooltip : collected) {
             // A single broken tooltip must not swallow the rest of them: the screen's list was already taken
             // over above, so an exception here would lose the whole frame's tooltips.
@@ -184,19 +189,17 @@ public final class ConfigTooltipRenderer {
             y -= shift;
         }
 
-        // Everything is pushed along z so the parts of the screen that are drawn after this hook (the category
-        // tree and its buttons) cannot cover the box.
-        PoseStack pose = graphics.pose();
-        pose.pushPose();
-        pose.translate(0.0F, 0.0F, Z_OFFSET);
         graphics.fill(left, top, right, bottom, BACKGROUND);
         graphics.fill(left, top, right, top + 1, BORDER);
         graphics.fill(left, bottom - 1, right, bottom, BORDER);
         graphics.fill(left, top + 1, left + 1, bottom - 1, BORDER);
         graphics.fill(right - 1, top + 1, right, bottom - 1, BORDER);
+        // The interface is drawn with the depth test off and its batches are flushed by render type rather than
+        // in the order the shapes were queued, so the text can end up below the box. Flushing here fixes the
+        // order for good: the frame is on screen before the text is even queued.
+        graphics.flush();
         for (int i = 0; i < lines.size(); i++) {
             graphics.drawString(font, lines.get(i), x, y + i * LINE_HEIGHT, TEXT);
         }
-        pose.popPose();
     }
 }
