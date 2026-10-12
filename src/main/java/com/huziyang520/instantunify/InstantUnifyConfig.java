@@ -87,7 +87,17 @@ public final class InstantUnifyConfig {
             "refinedstorage",
             "enderio");
 
-    public static final List<String> DEFAULT_BLACKLIST_MODS = List.of("chisel", "astralsorcery", "ae2");
+    public static final List<String> DEFAULT_BLACKLIST_MODS = List.of("chisel", "astralsorcery");
+
+    /**
+     * Mods whose items are left alone but may still be the item everything else turns into. Used for mods that
+     * own a material (AE2 and its silicon) and must not be replaced, while the copies other mods ship should
+     * collapse into it.
+     */
+    public static final List<String> DEFAULT_EXEMPT_MODS = List.of("ae2");
+
+    /** Keeps items of one mod from being merged into each other, which is the safe default. */
+    public static final boolean DEFAULT_SAME_MOD_NO_UNIFY = true;
 
     public static final List<String> DEFAULT_BLACKLIST_ITEMS = List.of();
 
@@ -119,6 +129,7 @@ public final class InstantUnifyConfig {
     private static final ForgeConfigSpec.EnumValue<ListMode> LIST_MODE;
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> PREFERRED_MODS;
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_MODS;
+    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> EXEMPT_MODS;
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_ITEMS;
     private static final ForgeConfigSpec.ConfigValue<List<? extends List<? extends String>>> ALTERNATIVES;
     private static final ForgeConfigSpec.ConfigValue<List<? extends List<? extends String>>> NAMESPACE_ALIASES;
@@ -129,6 +140,7 @@ public final class InstantUnifyConfig {
     private static final ForgeConfigSpec.BooleanValue CHANGE;
     private static final ForgeConfigSpec.BooleanValue GUI;
     private static final ForgeConfigSpec.BooleanValue HARVEST;
+    private static final ForgeConfigSpec.BooleanValue SAME_MOD_NO_UNIFY;
 
     private static final ForgeConfigSpec.BooleanValue PERFORMANCE_INDEX_CACHE;
     private static final ForgeConfigSpec.IntValue PERFORMANCE_LAZY_INDEX_REFRESH_SECONDS;
@@ -157,6 +169,11 @@ public final class InstantUnifyConfig {
         BLACKLIST_MODS = b.comment("Blacklisted Mods: their items are never replaced and never used as a target")
                 .defineList("blacklistMods", DEFAULT_BLACKLIST_MODS, STRING_ELEMENT);
 
+        EXEMPT_MODS = b.comment(
+                "Exempt Mods: their items are never replaced, but other mods' items may still turn into them",
+                "Use this for a mod that owns a material and should stay the way it is (AE2 silicon)")
+                .defineList("exemptMods", DEFAULT_EXEMPT_MODS, STRING_ELEMENT);
+
         BLACKLIST_ITEMS = b.comment("Blacklisted Items: these item ids are never replaced (empty by default)")
                 .defineList("blacklistItems", DEFAULT_BLACKLIST_ITEMS, STRING_ELEMENT);
 
@@ -167,6 +184,11 @@ public final class InstantUnifyConfig {
                 "Namespaces that mean the same thing, the first entry of a group is the canonical one",
                 "Keeps items that only ship one of the two spellings (forge: and c:) in the same group")
                 .defineList("namespaceAliases", DEFAULT_NAMESPACE_ALIASES, STRING_LIST_ELEMENT);
+
+        SAME_MOD_NO_UNIFY = b.comment(
+                "Never unify two items of the same mod with each other",
+                "On by default: mods ship variants that only make sense next to each other")
+                .define("sameModNoUnify", DEFAULT_SAME_MOD_NO_UNIFY);
 
         b.push("Unify event");
         DROP = b.comment("Unify when items drop").define("drop", DEFAULT_DROP);
@@ -211,6 +233,14 @@ public final class InstantUnifyConfig {
 
     public static List<? extends String> whitelist() {
         return WHITELIST.get();
+    }
+
+    public static List<? extends String> exemptMods() {
+        return EXEMPT_MODS.get();
+    }
+
+    public static boolean sameModNoUnify() {
+        return SAME_MOD_NO_UNIFY.get();
     }
 
     public static ListMode listMode() {
@@ -295,6 +325,16 @@ public final class InstantUnifyConfig {
 
     public static void setBlacklistMods(List<String> value) {
         BLACKLIST_MODS.set(value);
+        persist();
+    }
+
+    public static void setExemptMods(List<String> value) {
+        EXEMPT_MODS.set(value);
+        persist();
+    }
+
+    public static void setSameModNoUnify(boolean value) {
+        SAME_MOD_NO_UNIFY.set(value);
         persist();
     }
 

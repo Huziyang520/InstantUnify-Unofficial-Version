@@ -12,8 +12,11 @@ import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.Style;
 import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.fml.ModLoadingContext;
 
@@ -33,6 +36,9 @@ import net.minecraftforge.fml.ModLoadingContext;
  * readable.
  */
 public final class ClothConfigIntegration {
+
+    /** Width a tooltip line is wrapped at, the same value vanilla uses for item tooltips. */
+    private static final int TOOLTIP_WIDTH = 200;
 
     private ClothConfigIntegration() {
     }
@@ -63,7 +69,7 @@ public final class ClothConfigIntegration {
                 .setDefaultValue(InstantUnifyConfig.DEFAULT_LIST_MODE)
                 .setEnumNameProvider(value -> Component.translatable(
                         "instantunify.config.listMode." + value.name().toLowerCase(Locale.ROOT)))
-                .setTooltipSupplier(() -> Optional.of(new Component[]{tooltip("listMode")}))
+                .setTooltipSupplier(tooltipSupplier("listMode"))
                 .setSaveConsumer(InstantUnifyConfig::setListMode)
                 .build());
 
@@ -72,6 +78,11 @@ public final class ClothConfigIntegration {
                 InstantUnifyConfig.DEFAULT_PREFERRED_MODS, InstantUnifyConfig::setPreferredMods));
         add(mods, entries, "blacklistMods", stringList(entries, "blacklistMods", InstantUnifyConfig.blacklistMods(),
                 InstantUnifyConfig.DEFAULT_BLACKLIST_MODS, InstantUnifyConfig::setBlacklistMods));
+        add(mods, entries, "exemptMods", stringList(entries, "exemptMods", InstantUnifyConfig.exemptMods(),
+                InstantUnifyConfig.DEFAULT_EXEMPT_MODS, InstantUnifyConfig::setExemptMods));
+        add(mods, entries, "sameModNoUnify",
+                booleanEntry(entries, "sameModNoUnify", InstantUnifyConfig.sameModNoUnify(),
+                        InstantUnifyConfig.DEFAULT_SAME_MOD_NO_UNIFY, InstantUnifyConfig::setSameModNoUnify));
         add(mods, entries, "blacklistItems", stringList(entries, "blacklistItems", InstantUnifyConfig.blacklistItems(),
                 InstantUnifyConfig.DEFAULT_BLACKLIST_ITEMS, InstantUnifyConfig::setBlacklistItems));
         add(mods, entries, "alternatives", stringList(entries, "alternatives", toLines(InstantUnifyConfig.alternatives()),
@@ -106,7 +117,7 @@ public final class ClothConfigIntegration {
                 .setDefaultValue(InstantUnifyConfig.DEFAULT_LAZY_INDEX_REFRESH_SECONDS)
                 .setMin(0)
                 .setMax(86400)
-                .setTooltipSupplier(() -> Optional.of(new Component[]{tooltip("lazyIndexRefreshSeconds")}))
+                .setTooltipSupplier(tooltipSupplier("lazyIndexRefreshSeconds"))
                 .setSaveConsumer(InstantUnifyConfig::setLazyIndexRefreshSeconds)
                 .build());
 
@@ -143,7 +154,20 @@ public final class ClothConfigIntegration {
     }
 
     private static Supplier<Optional<Component[]>> tooltipSupplier(String key) {
-        return () -> Optional.of(new Component[]{tooltip(key)});
+        return () -> Optional.of(wrapped(tooltip(key)).toArray(new Component[0]));
+    }
+
+    /**
+     * Breaks a long description into several lines, otherwise the box stretches across the whole screen and is
+     * unreadable. The same width vanilla uses for item tooltips.
+     */
+    private static List<Component> wrapped(Component text) {
+        Font font = Minecraft.getInstance().font;
+        List<Component> lines = new ArrayList<>();
+        for (FormattedText line : font.getSplitter().splitLines(text, TOOLTIP_WIDTH, Style.EMPTY)) {
+            lines.add(Component.literal(line.getString()));
+        }
+        return lines.isEmpty() ? List.of(text) : lines;
     }
 
     private static Component field(String key) {
