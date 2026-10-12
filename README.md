@@ -26,7 +26,8 @@ Only items **without** custom data take part. Enchanted, damaged or renamed item
 
 - **`whitelist` / `blacklist`** — tag names that are unified / ignored, regular expressions allowed.
   The defaults cover the `forge:` material tags and their `c:` counterparts, so the same file works on both
-  naming conventions.
+  naming conventions. An entry written as `forge:ores\/.+` also matches the bare tag `forge:ores`, so an item
+  that only carries the bare name (silicon is a common example) is recognised too.
 - **`listMode`** — how the two lists are combined: `USE_WHITELIST`, `USE_BLACKLIST`, `USE_BOTH_LISTS` (default)
   or `USE_NO_LIST`.
 - **`preferredMods`** — the list that decides *which* version wins. The first mod in the list that provides the
@@ -118,7 +119,8 @@ MIT. Original InstantUnify Reforged by GOOGLEPOX, see the LICENSE file for the f
 `config/instantunify-common.toml` 是唯一的配置文件。
 
 - **`whitelist` / `blacklist`** —— 参与统一 / 被忽略的标签名，支持正则表达式。默认值同时覆盖 `forge:` 与
-  `c:` 两套材料标签命名，因此同一份配置在两种约定下都能用。
+  `c:` 两套材料标签命名，因此同一份配置在两种约定下都能用。写成 `forge:ores\/.+` 的条目**同时匹配裸标签**
+  `forge:ores`，所以只打了裸标签的物品（硅是典型例子）也能被识别。
 - **`listMode`** —— 两个列表的组合方式：`USE_WHITELIST`、`USE_BLACKLIST`、`USE_BOTH_LISTS`（默认）或
   `USE_NO_LIST`。
 - **`preferredMods`** —— 决定**用哪一个版本**的列表。列表中靠前、且提供了该材料的模组成为统一后的物品；
