@@ -72,33 +72,34 @@ public final class UnifyIndex {
         Map<String, Integer> priority = priorityMap();
         Set<String> blockedMods = new HashSet<>(InstantUnifyConfig.blacklistMods());
 
-        // Pass one: group items by fingerprint, remembering the best candidate per group.
-        Map<Item, List<ResourceLocation>> fingerprints = new HashMap<>();
-        Map<List<ResourceLocation>, Item> bestPerGroup = new HashMap<>();
+        // Pass one: group items by material key, remembering the best candidate per group.
+        Map<Item, String> keys = new HashMap<>();
+        Map<String, Item> bestPerGroup = new HashMap<>();
         for (Item item : ForgeRegistries.ITEMS.getValues()) {
             ResourceLocation id = ForgeRegistries.ITEMS.getKey(item);
             // Blacklisted mods neither get replaced nor act as a target.
             if (id == null || blockedMods.contains(id.getNamespace())) {
                 continue;
             }
-            List<ResourceLocation> fingerprint = normalizer.normalize(item);
-            if (fingerprint.isEmpty()) {
+            String key = normalizer.materialKey(item);
+            if (key == null) {
                 continue;
             }
-            fingerprints.put(item, fingerprint);
-            Item current = bestPerGroup.get(fingerprint);
+            keys.put(item, key);
+            Item current = bestPerGroup.get(key);
             // Strictly better priority wins, ties keep the first item in registry order (stable, as before).
             if (current == null || priorityOf(priority, item) < priorityOf(priority, current)) {
-                bestPerGroup.put(fingerprint, item);
+                bestPerGroup.put(key, item);
             }
         }
 
-        // Pass two: every item points at the winner of its own group.
-        Map<Item, Item> result = new HashMap<>(fingerprints.size() * 2);
-        for (Map.Entry<Item, List<ResourceLocation>> entry : fingerprints.entrySet()) {
+        // Pass two: every replaceable item points at the winner of its own group.
+        Map<Item, Item> result = new HashMap<>(keys.size() * 2);
+        for (Map.Entry<Item, String> entry : keys.entrySet()) {
+            Item item = entry.getKey();
             Item target = bestPerGroup.get(entry.getValue());
-            if (target != null) {
-                result.put(entry.getKey(), target);
+            if (canReplace(item, target)) {
+                result.put(item, target);
             }
         }
         return result;
@@ -106,8 +107,8 @@ public final class UnifyIndex {
 
     /** The original behaviour: scan the registry now. Used when the index cache is disabled. */
     private Item scan(Item item) {
-        List<ResourceLocation> fingerprint = normalizer.normalize(item);
-        if (fingerprint.isEmpty()) {
+        String key = normalizer.materialKey(item);
+        if (key == null) {
             return null;
         }
         Map<String, Integer> priority = priorityMap();
@@ -120,7 +121,7 @@ public final class UnifyIndex {
             if (id == null || blockedMods.contains(id.getNamespace())) {
                 continue;
             }
-            if (!fingerprint.equals(normalizer.normalize(candidate))) {
+            if (!key.equals(normalizer.materialKey(candidate))) {
                 continue;
             }
             int candidatePriority = priorityOf(priority, candidate);
@@ -129,7 +130,26 @@ public final class UnifyIndex {
                 best = candidate;
             }
         }
-        return best;
+        return canReplace(item, best) ? best : null;
+    }
+
+    /**
+     * Decides whether {@code item} may be turned into {@code target}. Exempt mods keep their items but are still
+     * allowed to be the target, and one mod's items are never merged into each other unless that is turned off.
+     */
+    private static boolean canReplace(Item item, Item target) {
+        if (target == null || target == item) {
+            return false;
+        }
+        ResourceLocation source = ForgeRegistries.ITEMS.getKey(item);
+        ResourceLocation destination = ForgeRegistries.ITEMS.getKey(target);
+        if (source == null || destination == null) {
+            return false;
+        }
+        if (InstantUnifyConfig.exemptMods().contains(source.getNamespace())) {
+            return false;
+        }
+        return !InstantUnifyConfig.sameModNoUnify() || !source.getNamespace().equals(destination.getNamespace());
     }
 
     private static Map<String, Integer> priorityMap() {

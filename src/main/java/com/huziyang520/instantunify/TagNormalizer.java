@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraftforge.registries.ForgeRegistries;
 
 /**
  * Turns an item into its "material fingerprint": the sorted list of tag names that survive the alternatives
@@ -25,6 +26,24 @@ public final class TagNormalizer {
 
     /** Entries written as {@code <tag>\/.+} cover the tag itself as well as everything below it. */
     private static final String SUB_TAG_SUFFIX = "\\/.+";
+
+    /** Shapes that make an item a material, most specific first. */
+    private static final List<String> SHAPES = List.of("ores", "raw_materials", "ingots", "nuggets", "gems", "dusts",
+            "gears", "plates", "rods", "storage_blocks");
+
+    /** Item name suffixes, paired with the shape they mean. Used for items that carry no material tag at all. */
+    private static final List<String> NAME_SHAPE_SUFFIXES = List.of("_ore", "_ingot", "_nugget", "_gem", "_dust",
+            "_gear", "_plate", "_rod", "_block");
+    private static final List<String> NAME_SHAPE_VALUES = List.of("ores", "ingots", "nuggets", "gems", "dusts", "gears",
+            "plates", "rods", "storage_blocks");
+
+    /** Item name prefixes that play the same role as the ores_in_ground tag. */
+    private static final List<String> NAME_GROUND_PREFIXES = List.of("deepslate_", "nether_", "end_", "raw_");
+    private static final List<String> NAME_GROUND_VALUES =
+            List.of("deepslate", "netherrack", "end_stone", "raw");
+
+    /** An ore without a ground tag is treated as the stone variant, which is what the tag convention means. */
+    private static final String DEFAULT_GROUND = "stone";
 
     private volatile boolean dirty = true;
     private volatile Pattern[] whitelist = new Pattern[0];
@@ -98,6 +117,81 @@ public final class TagNormalizer {
         }
         Collections.sort(result);
         return result;
+    }
+
+    /**
+     * Turns an item into its "material key", the value that decides which items are interchangeable.
+     * <p>
+     * A key is {@code <shape>#<material>} (ores also carry {@code @<ground>}) and comes from the tags first.
+     * Two items that both say {@code forge:ores/silver} therefore land in the same group even when one of them
+     * also carries unrelated tags, which is what the old "the whole tag set has to be equal" rule could not do.
+     * <p>
+     * Items without any material tag - Ice and Fire ships its ores and gems with block tags only - fall back to
+     * the registry name, so no per mod list has to be maintained: {@code iceandfire:silver_ore} simply means
+     * "silver ore in stone" like everywhere else.
+     *
+     * @return the key, or {@code null} when the item is not a material this mod knows about
+     */
+    public String materialKey(Item item) {
+        String ground = null;
+        String best = null;
+        int bestRank = Integer.MAX_VALUE;
+        for (ResourceLocation tag : normalize(item)) {
+            String path = tag.getPath();
+            int slash = path.indexOf('/');
+            if (slash <= 0 || slash == path.length() - 1) {
+                continue;
+            }
+            String shape = path.substring(0, slash);
+            String material = path.substring(slash + 1);
+            if (shape.equals("ores_in_ground")) {
+                ground = material;
+                continue;
+            }
+            int rank = SHAPES.indexOf(shape);
+            if (rank >= 0 && rank < bestRank) {
+                bestRank = rank;
+                best = shape + "#" + material;
+            }
+        }
+        if (best != null) {
+            // Ores keep the same stone / deepslate split the ores_in_ground tag expresses.
+            return bestRank == 0 ? best + "@" + (ground == null ? DEFAULT_GROUND : ground) : best;
+        }
+        return nameKey(item);
+    }
+
+    private static String nameKey(Item item) {
+        ResourceLocation id = ForgeRegistries.ITEMS.getKey(item);
+        if (id == null) {
+            return null;
+        }
+        String path = id.getPath();
+        for (int i = 0; i < NAME_SHAPE_SUFFIXES.size(); i++) {
+            String suffix = NAME_SHAPE_SUFFIXES.get(i);
+            if (!path.endsWith(suffix)) {
+                continue;
+            }
+            String material = path.substring(0, path.length() - suffix.length());
+            String ground = null;
+            for (int j = 0; j < NAME_GROUND_PREFIXES.size(); j++) {
+                String prefix = NAME_GROUND_PREFIXES.get(j);
+                if (material.startsWith(prefix) && material.length() > prefix.length()) {
+                    ground = NAME_GROUND_VALUES.get(j);
+                    material = material.substring(prefix.length());
+                    break;
+                }
+            }
+            // Only single word materials are accepted, guessing longer names merges unrelated items.
+            if (material.isEmpty() || material.indexOf('_') >= 0) {
+                continue;
+            }
+            String shape = NAME_SHAPE_VALUES.get(i);
+            return shape.equals("ores")
+                    ? shape + "#" + material + "@" + (ground == null ? DEFAULT_GROUND : ground)
+                    : shape + "#" + material;
+        }
+        return null;
     }
 
     private void ensureUpToDate() {
