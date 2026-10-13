@@ -3,10 +3,10 @@ package com.huziyang520.instantunify;
 import java.util.List;
 import java.util.Optional;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
 
 /**
  * Turns an item stack into the "dominant" stack of its material group, and owns the shared derived state
@@ -38,10 +38,11 @@ public final class ItemUnifier {
             return Optional.empty();
         }
         // Items carrying custom data (enchants, damage, custom name, ...) are left alone, same as the original mod.
-        if (orig.hasTag()) {
+        // hasTag() is gone in the component world: a stack with no components beyond the defaults has an empty patch.
+        if (!orig.isComponentsPatchEmpty()) {
             return Optional.empty();
         }
-        ResourceLocation id = ForgeRegistries.ITEMS.getKey(orig.getItem());
+        Identifier id = BuiltInRegistries.ITEM.getKey(orig.getItem());
         if (id == null || InstantUnifyConfig.blacklistMods().contains(id.getNamespace())) {
             return Optional.empty();
         }

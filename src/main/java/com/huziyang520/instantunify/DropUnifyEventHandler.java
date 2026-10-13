@@ -1,9 +1,9 @@
 package com.huziyang520.instantunify;
 
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 
 /**
  * Unifies items the moment they enter a level, which covers block drops, mob loot, items dropped by players

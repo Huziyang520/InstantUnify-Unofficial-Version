@@ -1,8 +1,8 @@
 package com.huziyang520.instantunify;
 
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.event.entity.player.PlayerContainerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerContainerEvent;
 
 /**
  * Unifies the contents of a container when it is opened, including chests, machines and the player inventory.

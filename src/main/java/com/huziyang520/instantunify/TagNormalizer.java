@@ -10,10 +10,10 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.registries.ForgeRegistries;
 
 /**
  * Turns an item into its "material fingerprint": the sorted list of tag names that survive the alternatives
@@ -61,12 +61,11 @@ public final class TagNormalizer {
         dirty = true;
     }
 
-    // ResourceLocation(String, String) is the constructor this Minecraft version offers.
-    @SuppressWarnings("removal")
-    public List<ResourceLocation> normalize(Item item) {
+    public List<Identifier> normalize(Item item) {
         ensureUpToDate();
 
-        Set<ResourceLocation> raw = item.builtInRegistryHolder().tags()
+        // Item no longer exposes the tag holder directly, the registry is asked for it instead.
+        Set<Identifier> raw = BuiltInRegistries.ITEM.wrapAsHolder(item).tags()
                 .map(TagKey::location)
                 .collect(Collectors.toSet());
 
@@ -74,32 +73,33 @@ public final class TagNormalizer {
         // an item that ships both spellings has more tag names than an item that ships only one of them and the
         // two can never end up in the same group.
         Map<String, String> aliases = this.namespaceAliases;
-        Set<ResourceLocation> own;
+        Set<Identifier> own;
         if (aliases.isEmpty()) {
             own = raw;
         } else {
             own = new HashSet<>(raw.size());
-            for (ResourceLocation name : raw) {
+            for (Identifier name : raw) {
                 String canonical = aliases.getOrDefault(name.getNamespace(), name.getNamespace());
                 own.add(canonical.equals(name.getNamespace())
                         ? name
-                        : new ResourceLocation(canonical, name.getPath()));
+                        : Identifier.fromNamespaceAndPath(canonical, name.getPath()));
             }
         }
 
-        Set<ResourceLocation> names = new HashSet<>(own);
+        Set<Identifier> names = new HashSet<>(own);
 
         // "aluminum" / "aluminium" / "bauxite" are spelled differently by different mods, so every known
         // spelling of a path segment is added as an extra tag name. The namespace is kept, same as the original.
         Map<String, List<String>> alts = this.alternatives;
         if (!alts.isEmpty()) {
-            for (ResourceLocation name : own) {
+            for (Identifier name : own) {
                 for (Map.Entry<String, List<String>> entry : alts.entrySet()) {
                     if (!name.getPath().contains(entry.getKey())) {
                         continue;
                     }
                     for (String alt : entry.getValue()) {
-                        names.add(new ResourceLocation(name.getNamespace(), name.getPath().replace(entry.getKey(), alt)));
+                        names.add(Identifier.fromNamespaceAndPath(name.getNamespace(),
+                                name.getPath().replace(entry.getKey(), alt)));
                     }
                 }
             }
@@ -111,8 +111,8 @@ public final class TagNormalizer {
         boolean useBlacklist = mode == InstantUnifyConfig.ListMode.USE_BLACKLIST
                 || mode == InstantUnifyConfig.ListMode.USE_BOTH_LISTS;
 
-        List<ResourceLocation> result = new ArrayList<>(names.size());
-        for (ResourceLocation name : names) {
+        List<Identifier> result = new ArrayList<>(names.size());
+        for (Identifier name : names) {
             if (useWhitelist && !matchesAny(whitelist, name)) {
                 continue;
             }
@@ -143,7 +143,7 @@ public final class TagNormalizer {
         String best = null;
         int bestRank = Integer.MAX_VALUE;
         String bare = null;
-        for (ResourceLocation tag : normalize(item)) {
+        for (Identifier tag : normalize(item)) {
             String path = tag.getPath();
             int slash = path.indexOf('/');
             if (slash < 0) {
@@ -181,7 +181,7 @@ public final class TagNormalizer {
     }
 
     private static String nameKey(Item item) {
-        ResourceLocation id = ForgeRegistries.ITEMS.getKey(item);
+        Identifier id = BuiltInRegistries.ITEM.getKey(item);
         if (id == null) {
             return null;
         }
@@ -252,7 +252,7 @@ public final class TagNormalizer {
         return patterns.toArray(new Pattern[0]);
     }
 
-    private static boolean matchesAny(Pattern[] patterns, ResourceLocation value) {
+    private static boolean matchesAny(Pattern[] patterns, Identifier value) {
         String text = value.toString();
         for (Pattern pattern : patterns) {
             if (pattern.matcher(text).matches()) {

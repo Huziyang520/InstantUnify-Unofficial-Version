@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.registries.ForgeRegistries;
 
 /**
  * Resolves "which item is the dominant one for this material".
@@ -75,8 +75,8 @@ public final class UnifyIndex {
         // Pass one: group items by material key, remembering the best candidate per group.
         Map<Item, String> keys = new HashMap<>();
         Map<String, Item> bestPerGroup = new HashMap<>();
-        for (Item item : ForgeRegistries.ITEMS.getValues()) {
-            ResourceLocation id = ForgeRegistries.ITEMS.getKey(item);
+        for (Item item : BuiltInRegistries.ITEM) {
+            Identifier id = BuiltInRegistries.ITEM.getKey(item);
             // Blacklisted mods neither get replaced nor act as a target.
             if (id == null || blockedMods.contains(id.getNamespace())) {
                 continue;
@@ -115,9 +115,8 @@ public final class UnifyIndex {
         Set<String> blockedMods = new HashSet<>(InstantUnifyConfig.blacklistMods());
         Item best = null;
         int bestPriority = Integer.MAX_VALUE;
-        List<Item> candidates = new ArrayList<>(ForgeRegistries.ITEMS.getValues());
-        for (Item candidate : candidates) {
-            ResourceLocation id = ForgeRegistries.ITEMS.getKey(candidate);
+        for (Item candidate : BuiltInRegistries.ITEM) {
+            Identifier id = BuiltInRegistries.ITEM.getKey(candidate);
             if (id == null || blockedMods.contains(id.getNamespace())) {
                 continue;
             }
@@ -141,8 +140,8 @@ public final class UnifyIndex {
         if (target == null || target == item) {
             return false;
         }
-        ResourceLocation source = ForgeRegistries.ITEMS.getKey(item);
-        ResourceLocation destination = ForgeRegistries.ITEMS.getKey(target);
+        Identifier source = BuiltInRegistries.ITEM.getKey(item);
+        Identifier destination = BuiltInRegistries.ITEM.getKey(target);
         if (source == null || destination == null) {
             return false;
         }
@@ -162,7 +161,7 @@ public final class UnifyIndex {
     }
 
     private static int priorityOf(Map<String, Integer> priority, Item item) {
-        ResourceLocation id = ForgeRegistries.ITEMS.getKey(item);
+        Identifier id = BuiltInRegistries.ITEM.getKey(item);
         if (id == null) {
             return Integer.MAX_VALUE;
         }

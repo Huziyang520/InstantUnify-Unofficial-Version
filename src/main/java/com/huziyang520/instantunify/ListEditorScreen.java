@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -222,20 +222,20 @@ public class ListEditorScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics);
-        graphics.drawCenteredString(this.font, this.title, this.width / 2, 6, 0xFFFFFF);
-        graphics.drawCenteredString(this.font,
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        extractBackground(graphics, mouseX, mouseY, partialTick);
+        graphics.centeredText(this.font, this.title, this.width / 2, 6, 0xFFFFFF);
+        graphics.centeredText(this.font,
                 Component.translatable("instantunify.config." + editors.get(selected).key),
                 this.width / 2, this.height - 40, 0xA0A0A0);
         if (working.isEmpty()) {
-            graphics.drawCenteredString(this.font, Component.literal("-"), this.width / 2, rowsTop() + 4, 0x808080);
+            graphics.centeredText(this.font, Component.literal("-"), this.width / 2, rowsTop() + 4, 0x808080);
         }
         // Page indicator between the two paging buttons, e.g. "2/3".
         int pageCenterX = PAGE_LEFT_X + PAGE_BUTTON_SIZE + PAGE_GAP / 2;
-        graphics.drawCenteredString(this.font, Component.literal((page + 1) + "/" + pageCount()),
+        graphics.centeredText(this.font, Component.literal((page + 1) + "/" + pageCount()),
                 pageCenterX, this.height - 22, 0xFFFFFF);
-        super.render(graphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override

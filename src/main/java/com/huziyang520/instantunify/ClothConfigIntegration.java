@@ -17,8 +17,8 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
-import net.minecraftforge.client.ConfigScreenHandler;
-import net.minecraftforge.fml.ModLoadingContext;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
 /**
  * The in-game configuration screen, provided through Cloth Config and reachable from the "Config" button of the
@@ -42,10 +42,9 @@ public final class ClothConfigIntegration {
     private ClothConfigIntegration() {
     }
 
-    @SuppressWarnings("removal")
-    public static void register() {
-        ModLoadingContext.get().registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class,
-                () -> new ConfigScreenHandler.ConfigScreenFactory((minecraft, parent) -> new ConfigHubScreen(parent)));
+    public static void register(ModContainer modContainer) {
+        modContainer.registerExtensionPoint(IConfigScreenFactory.class,
+                (container, parent) -> new ConfigHubScreen(parent));
     }
 
     static Screen createScreen(Minecraft minecraft, Screen parent) {

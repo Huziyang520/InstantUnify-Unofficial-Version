@@ -1,6 +1,8 @@
 package com.huziyang520.instantunify;
 
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.loading.FMLEnvironment;
 
 /**
  * Gate for the optional client only integration.
@@ -15,10 +17,13 @@ public final class ClientSetup {
     private ClientSetup() {
     }
 
-    public static void init() {
+    public static void init(ModContainer modContainer) {
+        if (FMLEnvironment.getDist().isDedicatedServer()) {
+            return;
+        }
         if (!ModList.get().isLoaded(CLOTH_CONFIG_MOD_ID)) {
             return;
         }
-        ClothConfigIntegration.register();
+        ClothConfigIntegration.register(modContainer);
     }
 }

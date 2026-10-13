@@ -2,12 +2,12 @@ package com.huziyang520.instantunify;
 
 import java.util.List;
 
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.config.ModConfig;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 /**
- * The single source of truth for every setting. Business code never touches {@link ForgeConfigSpec.ConfigValue}
+ * The single source of truth for every setting. Business code never touches {@link ModConfigSpec.ConfigValue}
  * directly, it asks this class, so a configuration change (file edit, in-game screen, "/reload", "/instantunify
  * reload") is picked up by the very next event without restarting anything.
  * <p>
@@ -44,7 +44,7 @@ public final class InstantUnifyConfig {
             // into a single item, which turns every ore into the deepslate one.
             "forge:ores_in_ground\\/.+",
             // Silicon and silver style materials are tag categories of their own, none of the rows above covers
-            // them. The "<name>\/.+" form also accepts the bare tag (see TagNormalizer), which is what catches
+            // them. The "<name>\\/.+" form also accepts the bare tag (see TagNormalizer), which is what catches
             // items that are tagged with forge:silicon and nothing else.
             "forge:silicon\\/.+",
             "c:ores\\/.+",
@@ -105,9 +105,9 @@ public final class InstantUnifyConfig {
             List.of(List.of("aluminum", "aluminium", "bauxite"));
 
     /**
-     * Namespaces that mean the same thing. On 1.20.1 the material tags live in {@code forge:}, while an
-     * increasing number of mods already ship the {c:} names that became the standard later; both spellings of
-     * the same material must end up in the same fingerprint. The first entry of a group is the canonical one.
+     * Namespaces that mean the same thing. An increasing number of mods ship the {@code c:} names, while most
+     * still use the older {@code forge:} ones; both spellings of the same material must end up in the same
+     * fingerprint. The first entry of a group is the canonical one.
      */
     public static final List<List<String>> DEFAULT_NAMESPACE_ALIASES = List.of(List.of("forge", "c"));
 
@@ -122,35 +122,35 @@ public final class InstantUnifyConfig {
 
     // --- Spec -----------------------------------------------------------------------------------------
 
-    public static final ForgeConfigSpec SPEC;
+    public static final ModConfigSpec SPEC;
 
-    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> BLACKLIST;
-    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> WHITELIST;
-    private static final ForgeConfigSpec.EnumValue<ListMode> LIST_MODE;
-    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> PREFERRED_MODS;
-    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_MODS;
-    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> EXEMPT_MODS;
-    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_ITEMS;
-    private static final ForgeConfigSpec.ConfigValue<List<? extends List<? extends String>>> ALTERNATIVES;
-    private static final ForgeConfigSpec.ConfigValue<List<? extends List<? extends String>>> NAMESPACE_ALIASES;
+    private static final ModConfigSpec.ConfigValue<List<? extends String>> BLACKLIST;
+    private static final ModConfigSpec.ConfigValue<List<? extends String>> WHITELIST;
+    private static final ModConfigSpec.EnumValue<ListMode> LIST_MODE;
+    private static final ModConfigSpec.ConfigValue<List<? extends String>> PREFERRED_MODS;
+    private static final ModConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_MODS;
+    private static final ModConfigSpec.ConfigValue<List<? extends String>> EXEMPT_MODS;
+    private static final ModConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_ITEMS;
+    private static final ModConfigSpec.ConfigValue<List<? extends List<? extends String>>> ALTERNATIVES;
+    private static final ModConfigSpec.ConfigValue<List<? extends List<? extends String>>> NAMESPACE_ALIASES;
 
-    private static final ForgeConfigSpec.BooleanValue DROP;
-    private static final ForgeConfigSpec.BooleanValue DEATH;
-    private static final ForgeConfigSpec.BooleanValue SECOND;
-    private static final ForgeConfigSpec.BooleanValue CHANGE;
-    private static final ForgeConfigSpec.BooleanValue GUI;
-    private static final ForgeConfigSpec.BooleanValue HARVEST;
-    private static final ForgeConfigSpec.BooleanValue SAME_MOD_NO_UNIFY;
+    private static final ModConfigSpec.BooleanValue DROP;
+    private static final ModConfigSpec.BooleanValue DEATH;
+    private static final ModConfigSpec.BooleanValue SECOND;
+    private static final ModConfigSpec.BooleanValue CHANGE;
+    private static final ModConfigSpec.BooleanValue GUI;
+    private static final ModConfigSpec.BooleanValue HARVEST;
+    private static final ModConfigSpec.BooleanValue SAME_MOD_NO_UNIFY;
 
-    private static final ForgeConfigSpec.BooleanValue PERFORMANCE_INDEX_CACHE;
-    private static final ForgeConfigSpec.IntValue PERFORMANCE_LAZY_INDEX_REFRESH_SECONDS;
+    private static final ModConfigSpec.BooleanValue PERFORMANCE_INDEX_CACHE;
+    private static final ModConfigSpec.IntValue PERFORMANCE_LAZY_INDEX_REFRESH_SECONDS;
 
     private static final java.util.function.Predicate<Object> STRING_ELEMENT = o -> o instanceof String;
     private static final java.util.function.Predicate<Object> STRING_LIST_ELEMENT =
             o -> o instanceof List && (((List<?>) o).isEmpty() || ((List<?>) o).get(0) instanceof String);
 
     static {
-        ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
+        ModConfigSpec.Builder b = new ModConfigSpec.Builder();
 
         BLACKLIST = b.comment("Tag names that shouldn't be unified (supports regex)",
                 "A name written as '<tag>\\/.+' covers the tag itself and everything below it")
@@ -216,9 +216,8 @@ public final class InstantUnifyConfig {
     private InstantUnifyConfig() {
     }
 
-    @SuppressWarnings("removal")
-    public static void register() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, SPEC);
+    public static void register(ModContainer modContainer) {
+        modContainer.registerConfig(ModConfig.Type.COMMON, SPEC);
     }
 
     /** Writes the current values back to disk, used by the in-game screen and by the reload command. */
@@ -395,8 +394,8 @@ public final class InstantUnifyConfig {
 
     /**
      * A change only updates the value in memory and drops the caches. Writing the file is left to the caller
-     * (the screen writes once when it closes), because Forge and the mod would otherwise write the same file
-     * at the same time and the file ends up truncated or locked.
+     * (the screen writes once when it closes), because the loader and the mod would otherwise write the same
+     * file at the same time and the file ends up truncated or locked.
      */
     private static void persist() {
         ItemUnifier.reload();
