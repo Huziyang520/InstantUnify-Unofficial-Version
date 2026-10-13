@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -50,6 +51,17 @@ public final class TagNormalizer {
 
     /** Prefix of the key of a material that is only ever named by a bare tag, e.g. forge:silicon. */
     private static final String BARE_MATERIAL_PREFIX = "material#";
+
+    /**
+     * Alternate spellings of the same ground, folded into the spelling the tag convention uses before the key is
+     * built. The convention writes the ground of an ore as {@code ores_in_ground/<word>} with a word that is
+     * usually "<something>stone" (stone, end_stone) or "netherrack"; some mods ship the short form of those two.
+     * This is a rule about the tag vocabulary, not about a mod: whatever uses the short spelling is grouped the
+     * same way. Grounds that are genuinely different (deepslate, the stone of another dimension) are untouched.
+     */
+    private static final Map<String, String> GROUND_ALIASES = Map.of(
+            "end", "end_stone",
+            "nether", "netherrack");
 
     private volatile boolean dirty = true;
     private volatile Pattern[] whitelist = new Pattern[0];
@@ -105,18 +117,9 @@ public final class TagNormalizer {
             }
         }
 
-        InstantUnifyConfig.ListMode mode = InstantUnifyConfig.listMode();
-        boolean useWhitelist = mode == InstantUnifyConfig.ListMode.USE_WHITELIST
-                || mode == InstantUnifyConfig.ListMode.USE_BOTH_LISTS;
-        boolean useBlacklist = mode == InstantUnifyConfig.ListMode.USE_BLACKLIST
-                || mode == InstantUnifyConfig.ListMode.USE_BOTH_LISTS;
-
         List<ResourceLocation> result = new ArrayList<>(names.size());
         for (ResourceLocation name : names) {
-            if (useWhitelist && !matchesAny(whitelist, name)) {
-                continue;
-            }
-            if (useBlacklist && matchesAny(blacklist, name)) {
+            if (!passesLists(name)) {
                 continue;
             }
             result.add(name);
@@ -160,7 +163,7 @@ public final class TagNormalizer {
             String shape = path.substring(0, slash);
             String material = path.substring(slash + 1);
             if (shape.equals(ORES_IN_GROUND)) {
-                ground = material;
+                ground = canonicalGround(material);
                 continue;
             }
             int rank = SHAPES.indexOf(shape);
@@ -168,6 +171,9 @@ public final class TagNormalizer {
                 bestRank = rank;
                 best = shape + "#" + material;
             }
+        }
+        if (ground == null) {
+            ground = blockGround(item);
         }
         if (best != null) {
             // Ores keep the same stone / deepslate split the ores_in_ground tag expresses.
@@ -178,6 +184,53 @@ public final class TagNormalizer {
             return BARE_MATERIAL_PREFIX + bare;
         }
         return nameKey(item);
+    }
+
+    private static String canonicalGround(String word) {
+        return GROUND_ALIASES.getOrDefault(word, word);
+    }
+
+    /**
+     * The ground of an ore can also live on the block the item places: several mods tag only the block with
+     * {@code ores_in_ground/...} and leave the item itself without it. An item without a ground tag is read as
+     * the stone variant, which puts an end or a nether ore into the overworld group - so the ground is looked up
+     * on the block as well, and only the ground: no other block tag takes part in the fingerprint.
+     *
+     * @return the ground of the block, or {@code null} when the item places no block or the block has none
+     */
+    private String blockGround(Item item) {
+        if (!(item instanceof BlockItem blockItem)) {
+            return null;
+        }
+        String ground = null;
+        for (ResourceLocation name : blockItem.getBlock().builtInRegistryHolder().tags()
+                .map(TagKey::location)
+                .sorted()
+                .collect(Collectors.toList())) {
+            if (!passesLists(name)) {
+                continue;
+            }
+            String path = name.getPath();
+            int slash = path.indexOf('/');
+            if (slash <= 0 || slash == path.length() - 1 || !path.substring(0, slash).equals(ORES_IN_GROUND)) {
+                continue;
+            }
+            ground = canonicalGround(path.substring(slash + 1));
+        }
+        return ground;
+    }
+
+    /** The white / black list decision for one tag name, shared by the fingerprint and the block ground. */
+    private boolean passesLists(ResourceLocation name) {
+        InstantUnifyConfig.ListMode mode = InstantUnifyConfig.listMode();
+        boolean useWhitelist = mode == InstantUnifyConfig.ListMode.USE_WHITELIST
+                || mode == InstantUnifyConfig.ListMode.USE_BOTH_LISTS;
+        boolean useBlacklist = mode == InstantUnifyConfig.ListMode.USE_BLACKLIST
+                || mode == InstantUnifyConfig.ListMode.USE_BOTH_LISTS;
+        if (useWhitelist && !matchesAny(whitelist, name)) {
+            return false;
+        }
+        return !useBlacklist || !matchesAny(blacklist, name);
     }
 
     private static String nameKey(Item item) {

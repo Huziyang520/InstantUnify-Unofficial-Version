@@ -66,6 +66,7 @@ public final class InstantUnifyConfig {
             "minecraft",
             "alltheores",
             "allthemodium",
+            "ftbmaterials",
             "kubejs",
             "tconstruct",
             "thermal",
