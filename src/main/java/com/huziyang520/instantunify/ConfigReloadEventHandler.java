@@ -1,7 +1,7 @@
 package com.huziyang520.instantunify;
 
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.event.config.ModConfigEvent;
 
 /**
  * Rebuilds the derived state when our configuration file is (re)loaded, which covers hand edits, the in-game

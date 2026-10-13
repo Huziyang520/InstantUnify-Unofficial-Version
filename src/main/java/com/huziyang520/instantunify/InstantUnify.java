@@ -3,12 +3,12 @@ package com.huziyang520.instantunify;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.common.NeoForge;
 
 @Mod(InstantUnify.MOD_ID)
 public class InstantUnify {
@@ -16,16 +16,14 @@ public class InstantUnify {
     public static final String MOD_ID = "instantunify";
     public static final Logger LOG = LogManager.getLogger(MOD_ID);
 
-    // The static accessors are deprecated for removal in later Forge versions, but they are the API this
-    // Minecraft version offers; the constructor injection used on newer versions does not exist yet here.
-    @SuppressWarnings("removal")
-    public InstantUnify() {
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-        InstantUnifyConfig.register();
+    // NeoForge injects the mod event bus and this mod's container, the static accessors of the Forge versions
+    // are gone.
+    public InstantUnify(IEventBus modEventBus, ModContainer modContainer) {
+        InstantUnifyConfig.register(modContainer);
         LootUnifyModifiers.register(modEventBus);
         modEventBus.register(new ConfigReloadEventHandler());
 
-        IEventBus forgeBus = MinecraftForge.EVENT_BUS;
+        IEventBus forgeBus = NeoForge.EVENT_BUS;
         forgeBus.register(new TagReloadEventHandler());
         forgeBus.register(new DropUnifyEventHandler());
         forgeBus.register(new DeathUnifyEventHandler());
@@ -35,7 +33,7 @@ public class InstantUnify {
 
         // The in-game screen is an optional client-only integration.
         if (FMLEnvironment.dist == Dist.CLIENT) {
-            ClientSetup.init();
+            ClientSetup.init(modContainer);
         }
     }
 }

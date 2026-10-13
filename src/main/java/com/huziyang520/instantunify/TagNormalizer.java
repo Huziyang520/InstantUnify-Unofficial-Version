@@ -10,10 +10,10 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.registries.ForgeRegistries;
 
 /**
  * Turns an item into its "material fingerprint": the sorted list of tag names that survive the alternatives
@@ -61,12 +61,11 @@ public final class TagNormalizer {
         dirty = true;
     }
 
-    // ResourceLocation(String, String) is the constructor this Minecraft version offers.
-    @SuppressWarnings("removal")
     public List<ResourceLocation> normalize(Item item) {
         ensureUpToDate();
 
-        Set<ResourceLocation> raw = item.builtInRegistryHolder().tags()
+        // Item no longer exposes the tag holder directly, the registry is asked for it instead.
+        Set<ResourceLocation> raw = BuiltInRegistries.ITEM.wrapAsHolder(item).tags()
                 .map(TagKey::location)
                 .collect(Collectors.toSet());
 
@@ -83,7 +82,7 @@ public final class TagNormalizer {
                 String canonical = aliases.getOrDefault(name.getNamespace(), name.getNamespace());
                 own.add(canonical.equals(name.getNamespace())
                         ? name
-                        : new ResourceLocation(canonical, name.getPath()));
+                        : ResourceLocation.fromNamespaceAndPath(canonical, name.getPath()));
             }
         }
 
@@ -99,7 +98,8 @@ public final class TagNormalizer {
                         continue;
                     }
                     for (String alt : entry.getValue()) {
-                        names.add(new ResourceLocation(name.getNamespace(), name.getPath().replace(entry.getKey(), alt)));
+                        names.add(ResourceLocation.fromNamespaceAndPath(name.getNamespace(),
+                                name.getPath().replace(entry.getKey(), alt)));
                     }
                 }
             }
@@ -181,7 +181,7 @@ public final class TagNormalizer {
     }
 
     private static String nameKey(Item item) {
-        ResourceLocation id = ForgeRegistries.ITEMS.getKey(item);
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
         if (id == null) {
             return null;
         }

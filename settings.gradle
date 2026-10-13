@@ -5,10 +5,9 @@ pluginManagement {
         maven { name = 'AliyunPublic'; url = 'https://maven.aliyun.com/repository/public' }
         gradlePluginPortal()
         maven {
-            name = 'MinecraftForge'
-            url = 'https://maven.minecraftforge.net/'
+            name = 'NeoForged'
+            url = 'https://maven.neoforged.net/releases'
         }
-        maven { url = 'https://maven.parchmentmc.org' }
     }
 }
 

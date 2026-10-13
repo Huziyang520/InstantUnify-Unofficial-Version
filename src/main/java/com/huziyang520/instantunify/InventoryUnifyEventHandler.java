@@ -4,9 +4,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerListener;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
  * Unifies the player inventory, either when a slot changes ({@code change}) or on a one second interval
@@ -17,18 +17,20 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
  */
 public final class InventoryUnifyEventHandler {
 
+    // The single tick event of the older versions is split into a pre and a post event here, this is the
+    // end-of-tick one, which is what the original handler listened to.
     @SubscribeEvent
-    public void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (!InstantUnifyConfig.second() || event.phase != TickEvent.Phase.END) {
+    public void onPlayerTick(PlayerTickEvent.Post event) {
+        if (!InstantUnifyConfig.second()) {
             return;
         }
-        if (event.player.level().isClientSide()) {
+        if (event.getEntity().level().isClientSide()) {
             return;
         }
-        if (event.player.level().getGameTime() % 20 != 18) {
+        if (event.getEntity().level().getGameTime() % 20 != 18) {
             return;
         }
-        ServerPlayer player = (ServerPlayer) event.player;
+        ServerPlayer player = (ServerPlayer) event.getEntity();
         if (Inventories.replaceInventory(player)) {
             player.containerMenu.broadcastChanges();
         }

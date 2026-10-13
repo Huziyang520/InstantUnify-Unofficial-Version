@@ -2,27 +2,30 @@ package com.huziyang520.instantunify;
 
 import java.util.Optional;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-import net.minecraftforge.common.loot.IGlobalLootModifier;
-import net.minecraftforge.common.loot.LootModifier;
+import net.neoforged.neoforge.common.loot.IGlobalLootModifier;
+import net.neoforged.neoforge.common.loot.LootModifier;
 
 /**
- * Forge global loot modifier that unifies the output of a loot table, which covers block drops, mob drops,
+ * Global loot modifier that unifies the output of a loot table, which covers block drops, mob drops,
  * chest loot and fishing.
  * <p>
  * Registered through {@code data/instantunify/loot_modifiers/unify_loot.json} and listed in
- * {@code data/forge/loot_modifiers/global_loot_modifiers.json}. The modifier is always attached, the
+ * {@code data/neoforge/loot_modifiers/global_loot_modifiers.json}. The modifier is always attached, the
  * {@code harvest} option is checked per generation so it can be toggled without reloading anything.
+ * <p>
+ * Since this loader generation the serializers are codecs: the field that used to be a {@code Codec} is a
+ * {@link MapCodec}, which is what the global loot modifier registry holds now.
  */
 public class LootUnifyModifier extends LootModifier {
 
-    public static final Codec<LootUnifyModifier> CODEC = RecordCodecBuilder.create(
+    public static final MapCodec<LootUnifyModifier> CODEC = RecordCodecBuilder.mapCodec(
             instance -> codecStart(instance).apply(instance, LootUnifyModifier::new));
 
     public LootUnifyModifier(LootItemCondition[] conditions) {
@@ -44,7 +47,7 @@ public class LootUnifyModifier extends LootModifier {
     }
 
     @Override
-    public Codec<? extends IGlobalLootModifier> codec() {
+    public MapCodec<? extends IGlobalLootModifier> codec() {
         return CODEC;
     }
 }
