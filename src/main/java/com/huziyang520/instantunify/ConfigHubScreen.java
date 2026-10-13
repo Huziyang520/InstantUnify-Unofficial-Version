@@ -41,7 +41,9 @@ public class ConfigHubScreen extends Screen {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        extractBackground(graphics, mouseX, mouseY, partialTick);
+        // The framework already extracted the background (and its blur) before calling this method, and this
+        // version allows that blur exactly once per frame: asking for it a second time crashed the client
+        // with "Can only blur once per frame". The text is drawn here, on top of that one background.
         graphics.centeredText(this.font, this.title, this.width / 2, this.height / 2 - 50, 0xFFFFFF);
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }

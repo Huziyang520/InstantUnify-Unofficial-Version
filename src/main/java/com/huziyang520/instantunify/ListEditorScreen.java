@@ -223,7 +223,8 @@ public class ListEditorScreen extends Screen {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        extractBackground(graphics, mouseX, mouseY, partialTick);
+        // super and the framework handle the background and its single blur pass, see ConfigHubScreen.
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
         graphics.centeredText(this.font, this.title, this.width / 2, 6, 0xFFFFFF);
         graphics.centeredText(this.font,
                 Component.translatable("instantunify.config." + editors.get(selected).key),
@@ -235,7 +236,6 @@ public class ListEditorScreen extends Screen {
         int pageCenterX = PAGE_LEFT_X + PAGE_BUTTON_SIZE + PAGE_GAP / 2;
         graphics.centeredText(this.font, Component.literal((page + 1) + "/" + pageCount()),
                 pageCenterX, this.height - 22, 0xFFFFFF);
-        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override
