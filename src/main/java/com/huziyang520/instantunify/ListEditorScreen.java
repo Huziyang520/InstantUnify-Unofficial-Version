@@ -223,7 +223,9 @@ public class ListEditorScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
+        // The background and its blur pass belong to super (see ConfigHubScreen); drawing them here as well
+        // blurred everything drawn in between, this label included.
+        super.render(graphics, mouseX, mouseY, partialTick);
         graphics.drawCenteredString(this.font, this.title, this.width / 2, 6, 0xFFFFFF);
         graphics.drawCenteredString(this.font,
                 Component.translatable("instantunify.config." + editors.get(selected).key),
@@ -235,7 +237,6 @@ public class ListEditorScreen extends Screen {
         int pageCenterX = PAGE_LEFT_X + PAGE_BUTTON_SIZE + PAGE_GAP / 2;
         graphics.drawCenteredString(this.font, Component.literal((page + 1) + "/" + pageCount()),
                 pageCenterX, this.height - 22, 0xFFFFFF);
-        super.render(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override

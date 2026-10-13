@@ -41,9 +41,13 @@ public class ConfigHubScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
-        graphics.drawCenteredString(this.font, this.title, this.width / 2, this.height / 2 - 50, 0xFFFFFF);
+        // Screen#render already draws the background, and in this version that call is what runs the blur
+        // pass. Calling renderBackground here as well ran the blur a second time - and the second pass runs
+        // over everything drawn in between, which is why the title used to come out smeared while the
+        // buttons (drawn after the second blur) stayed sharp. Text goes after super so it lands on top of a
+        // single, correctly ordered background.
         super.render(graphics, mouseX, mouseY, partialTick);
+        graphics.drawCenteredString(this.font, this.title, this.width / 2, this.height / 2 - 50, 0xFFFFFF);
     }
 
     @Override
