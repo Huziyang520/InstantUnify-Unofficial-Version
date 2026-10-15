@@ -1,5 +1,6 @@
 {
   "instantunify.config.title": "瞬间统一 配置",
+  "instantunify.configuration.title": "瞬间统一 配置",
   "instantunify.config.category.lists": "标签列表",
   "instantunify.config.category.general": "模组",
   "instantunify.config.category.events": "触发时机",
@@ -47,6 +48,9 @@
   "instantunify.config.namespaceAliases.tooltip": "表示同一种材料的命名空间。每行一组，组内用英文逗号分隔；组内第一个是规范命名空间",
   "instantunify.config.openListEditor": "列表编辑器…",
   "instantunify.editor.title": "编辑列表",
+  "instantunify.editor.category.tagLists": "标签列表",
+  "instantunify.editor.category.modLists": "模组列表",
+  "instantunify.editor.category.names": "名称与别名",
   "instantunify.editor.done": "完成",
   "instantunify.editor.cancel": "取消",
   "instantunify.config.openSettings": "设置"

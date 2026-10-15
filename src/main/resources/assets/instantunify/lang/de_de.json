@@ -1,5 +1,6 @@
 {
   "instantunify.config.title": "InstantUnify Einstellungen",
+  "instantunify.configuration.title": "InstantUnify Einstellungen",
   "instantunify.config.category.lists": "Tag-Listen",
   "instantunify.config.category.general": "Mods",
   "instantunify.config.category.events": "Ereignisse",
@@ -47,6 +48,9 @@
   "instantunify.config.namespaceAliases.tooltip": "Namensräume, die dasselbe Material meinen. Eine Zeile pro Gruppe, Namen durch Kommas getrennt; der erste Name einer Gruppe ist der kanonische",
   "instantunify.config.openListEditor": "Listeneditor...",
   "instantunify.editor.title": "Liste bearbeiten",
+  "instantunify.editor.category.tagLists": "Tag-Listen",
+  "instantunify.editor.category.modLists": "Mod-Listen",
+  "instantunify.editor.category.names": "Namen und Aliasse",
   "instantunify.editor.done": "Fertig",
   "instantunify.editor.cancel": "Abbrechen",
   "instantunify.config.openSettings": "Einstellungen"
