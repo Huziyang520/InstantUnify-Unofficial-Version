@@ -4,20 +4,23 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.neoforged.fml.ModContainer;
 
 /**
- * Entry point of the in-game configuration: either the regular Cloth Config screen or the list editor.
+ * Entry point of the in-game configuration: the loader's own settings screen or the list editor.
  * <p>
- * Cloth Config's screen does not allow adding buttons from the outside, so both screens are reached from here
- * instead.
+ * Both screens belong to the mod rather than to a screen library, and the loader's screen cannot take extra
+ * buttons from the outside, so they are reached from here instead.
  */
 public class ConfigHubScreen extends Screen {
 
     private final Screen parent;
+    private final ModContainer modContainer;
 
-    public ConfigHubScreen(Screen parent) {
+    public ConfigHubScreen(Screen parent, ModContainer modContainer) {
         super(Component.translatable("instantunify.config.title"));
         this.parent = parent;
+        this.modContainer = modContainer;
     }
 
     @Override
@@ -25,7 +28,7 @@ public class ConfigHubScreen extends Screen {
         int centerX = this.width / 2;
         addRenderableWidget(Button
                 .builder(Component.translatable("instantunify.config.openSettings"),
-                        button -> this.minecraft.setScreen(ClothConfigIntegration.createScreen(this.minecraft, this)))
+                        button -> this.minecraft.setScreen(SettingsScreen.create(this.modContainer, this)))
                 .bounds(centerX - 100, this.height / 2 - 26, 200, 20)
                 .build());
         addRenderableWidget(Button

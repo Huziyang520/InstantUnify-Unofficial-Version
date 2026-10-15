@@ -1,5 +1,6 @@
 {
   "instantunify.config.title": "InstantUnify 設定",
+  "instantunify.configuration.title": "InstantUnify 設定",
   "instantunify.config.category.lists": "タグリスト",
   "instantunify.config.category.general": "Mod",
   "instantunify.config.category.events": "トリガー",
@@ -47,6 +48,9 @@
   "instantunify.config.namespaceAliases.tooltip": "同じ素材を意味する名前空間。1 行につき 1 グループ、名前はカンマ区切り。グループの先頭が正規の名前空間です",
   "instantunify.config.openListEditor": "リストエディター...",
   "instantunify.editor.title": "リストの編集",
+  "instantunify.editor.category.tagLists": "タグリスト",
+  "instantunify.editor.category.modLists": "Modリスト",
+  "instantunify.editor.category.names": "名前と別名",
   "instantunify.editor.done": "完了",
   "instantunify.editor.cancel": "キャンセル",
   "instantunify.config.openSettings": "設定"

@@ -1,10 +1,14 @@
 package com.huziyang520.instantunify;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
+import net.minecraft.network.chat.Component;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.neoforge.common.TranslatableEnum;
 
 /**
  * The single source of truth for every setting. Business code never touches {@link ModConfigSpec.ConfigValue}
@@ -17,12 +21,27 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public final class InstantUnifyConfig {
 
     /** How the whitelist and the blacklist are combined. */
-    public enum ListMode {
+    public enum ListMode implements TranslatableEnum {
         USE_WHITELIST,
         USE_BLACKLIST,
         USE_BOTH_LISTS,
-        USE_NO_LIST
+        USE_NO_LIST;
+
+        /** Shown by the loader's own configuration screen; without this it would print the constant name. */
+        @Override
+        public Component getTranslatedName() {
+            return Component.translatable("instantunify.config.listMode." + this.name().toLowerCase(Locale.ROOT));
+        }
     }
+
+    /**
+     * The ordered lists. They are edited by {@link ListEditorScreen} only: the settings screen leaves them out, so
+     * the same list can never be maintained in two places, and {@link ConfigFileFormatter} reflows exactly these
+     * keys in the file.
+     */
+    public static final Set<String> LIST_KEYS = Set.of(
+            "blacklist", "whitelist", "preferredMods", "blacklistMods",
+            "exemptMods", "blacklistItems", "alternatives", "namespaceAliases");
 
     // --- Default values (single source of truth) -------------------------------------------------------
 
@@ -161,7 +180,11 @@ public final class InstantUnifyConfig {
                 "A name written as '<tag>\\/.+' covers the tag itself and everything below it")
                 .defineList("whitelist", DEFAULT_WHITELIST, STRING_ELEMENT);
 
+        // Every value that stays on the settings screen carries its own translation key, so the loader's screen
+        // and the list editor share one set of names in all languages (see InstantUnifyConfig's neighbours in
+        // assets/instantunify/lang).
         LIST_MODE = b.comment("How the two lists above are combined")
+                .translation("instantunify.config.listMode")
                 .defineEnum("listMode", DEFAULT_LIST_MODE);
 
         PREFERRED_MODS = b.comment("Preferred Mods: the first mod in this list that provides a material wins")
@@ -189,25 +212,29 @@ public final class InstantUnifyConfig {
         SAME_MOD_NO_UNIFY = b.comment(
                 "Never unify two items of the same mod with each other",
                 "On by default: mods ship variants that only make sense next to each other")
+                .translation("instantunify.config.sameModNoUnify")
                 .define("sameModNoUnify", DEFAULT_SAME_MOD_NO_UNIFY);
 
-        b.push("Unify event");
-        DROP = b.comment("Unify when items drop").define("drop", DEFAULT_DROP);
-        DEATH = b.comment("Unify drops when entities die").define("death", DEFAULT_DEATH);
-        SECOND = b.comment("Unify every second items in player's inventory").define("second", DEFAULT_SECOND);
-        CHANGE = b.comment("Unify items in player's inventory when they change").define("change", DEFAULT_CHANGE);
-        GUI = b.comment("Unify items when a container is opened (writes into containers)").define("gui", DEFAULT_GUI);
+        b.translation("instantunify.config.category.events").push("Unify event");
+        DROP = b.comment("Unify when items drop").translation("instantunify.config.drop").define("drop", DEFAULT_DROP);
+        DEATH = b.comment("Unify drops when entities die").translation("instantunify.config.death").define("death", DEFAULT_DEATH);
+        SECOND = b.comment("Unify every second items in player's inventory").translation("instantunify.config.second").define("second", DEFAULT_SECOND);
+        CHANGE = b.comment("Unify items in player's inventory when they change").translation("instantunify.config.change").define("change", DEFAULT_CHANGE);
+        GUI = b.comment("Unify items when a container is opened (writes into containers)").translation("instantunify.config.gui").define("gui", DEFAULT_GUI);
         HARVEST = b.comment("Unify loot table output (block drops, mob drops, chests, fishing)")
+                .translation("instantunify.config.harvest")
                 .define("harvest", DEFAULT_HARVEST);
         b.pop();
 
-        b.push("performance");
+        b.translation("instantunify.config.category.performance").push("performance");
         PERFORMANCE_INDEX_CACHE = b.comment(
                 "Cache the material index (tag fingerprint -> dominant item) instead of scanning the item registry on every drop",
                 "Turning this off restores the slow behaviour, useful for troubleshooting")
+                .translation("instantunify.config.indexCache")
                 .define("indexCache", DEFAULT_INDEX_CACHE);
         PERFORMANCE_LAZY_INDEX_REFRESH_SECONDS = b.comment(
                 "Rebuild the material index automatically after this many seconds, 0 = rebuild only on tag/config changes")
+                .translation("instantunify.config.lazyIndexRefreshSeconds")
                 .defineInRange("lazyIndexRefreshSeconds", DEFAULT_LAZY_INDEX_REFRESH_SECONDS, 0, 86400);
         b.pop();
 

@@ -1,29 +1,21 @@
 package com.huziyang520.instantunify;
 
 import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.ModList;
-import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
 /**
- * Gate for the optional client only integration.
+ * Client only entry point of the in-game screens.
  * <p>
- * This class deliberately references no class of the optional dependency, so the JVM never has to load any of
- * them when the dependency is missing. {@link ClothConfigIntegration} is only touched after the presence check.
+ * The "Config" button of the mod list opens {@link ConfigHubScreen}, which leads to the loader's own settings
+ * screen and to the list editor. The loader registers nothing for other mods, so this has to be registered here.
  */
 public final class ClientSetup {
-
-    private static final String CLOTH_CONFIG_MOD_ID = "cloth_config";
 
     private ClientSetup() {
     }
 
     public static void init(ModContainer modContainer) {
-        if (FMLEnvironment.dist.isDedicatedServer()) {
-            return;
-        }
-        if (!ModList.get().isLoaded(CLOTH_CONFIG_MOD_ID)) {
-            return;
-        }
-        ClothConfigIntegration.register(modContainer);
+        modContainer.registerExtensionPoint(IConfigScreenFactory.class,
+                (container, parent) -> new ConfigHubScreen(parent, container));
     }
 }
