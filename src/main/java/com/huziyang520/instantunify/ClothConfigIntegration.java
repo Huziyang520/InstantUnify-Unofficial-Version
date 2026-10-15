@@ -28,8 +28,8 @@ import net.minecraftforge.fml.ModLoadingContext;
  * and it is never shaded into the jar. Every entry reads its current value and resets to the value declared in
  * {@link InstantUnifyConfig}, so the screen can never drift from the file.
  * <p>
- * Cloth Config's list widget can only append entries, so a button in the hub screen opens {@link ListEditorScreen}
- * for inserting entries anywhere and for reordering them.
+ * Only the switches and the numbers are shown here. The ordered lists are edited by {@link ListEditorScreen},
+ * which is reached from the hub screen, so every list lives in exactly one place.
  * <p>
  * The categories are shown as buttons along the top, which is Cloth Config's plain layout: its "globalized"
  * layout moves them into a tree on the left, and that layout clips and covers the tooltips of this screen.
@@ -56,10 +56,6 @@ public final class ClothConfigIntegration {
         ConfigEntryBuilder entries = builder.entryBuilder();
 
         ConfigCategory lists = builder.getOrCreateCategory(Component.translatable("instantunify.config.category.lists"));
-        add(lists, entries, "blacklist", stringList(entries, "blacklist", InstantUnifyConfig.blacklist(),
-                InstantUnifyConfig.DEFAULT_BLACKLIST, InstantUnifyConfig::setBlacklist));
-        add(lists, entries, "whitelist", stringList(entries, "whitelist", InstantUnifyConfig.whitelist(),
-                InstantUnifyConfig.DEFAULT_WHITELIST, InstantUnifyConfig::setWhitelist));
         add(lists, entries, "listMode", entries
                 .startEnumSelector(field("listMode"), InstantUnifyConfig.ListMode.class, InstantUnifyConfig.listMode())
                 .setDefaultValue(InstantUnifyConfig.DEFAULT_LIST_MODE)
@@ -70,22 +66,9 @@ public final class ClothConfigIntegration {
                 .build());
 
         ConfigCategory mods = builder.getOrCreateCategory(Component.translatable("instantunify.config.category.general"));
-        add(mods, entries, "preferredMods", stringList(entries, "preferredMods", InstantUnifyConfig.preferredMods(),
-                InstantUnifyConfig.DEFAULT_PREFERRED_MODS, InstantUnifyConfig::setPreferredMods));
-        add(mods, entries, "blacklistMods", stringList(entries, "blacklistMods", InstantUnifyConfig.blacklistMods(),
-                InstantUnifyConfig.DEFAULT_BLACKLIST_MODS, InstantUnifyConfig::setBlacklistMods));
-        add(mods, entries, "exemptMods", stringList(entries, "exemptMods", InstantUnifyConfig.exemptMods(),
-                InstantUnifyConfig.DEFAULT_EXEMPT_MODS, InstantUnifyConfig::setExemptMods));
-        add(mods, entries, "blacklistItems", stringList(entries, "blacklistItems", InstantUnifyConfig.blacklistItems(),
-                InstantUnifyConfig.DEFAULT_BLACKLIST_ITEMS, InstantUnifyConfig::setBlacklistItems));
-        add(mods, entries, "alternatives", stringList(entries, "alternatives", toLines(InstantUnifyConfig.alternatives()),
-                toLines(InstantUnifyConfig.DEFAULT_ALTERNATIVES),
-                lines -> InstantUnifyConfig.setAlternatives(fromLines(lines))));
-        add(mods, entries, "namespaceAliases", stringList(entries, "namespaceAliases",
-                toLines(InstantUnifyConfig.namespaceAliases()),
-                toLines(InstantUnifyConfig.DEFAULT_NAMESPACE_ALIASES),
-                lines -> InstantUnifyConfig.setNamespaceAliases(fromLines(lines))));
-        // Kept at the end of the category on purpose: it is a switch about the lists above.
+        // The ordered lists are not shown here: they are edited by the list editor screen, so a list can never be
+        // maintained in two places.
+        // Kept at the end of the category on purpose: it is a switch about the lists.
         add(mods, entries, "sameModNoUnify",
                 booleanEntry(entries, "sameModNoUnify", InstantUnifyConfig.sameModNoUnify(),
                         InstantUnifyConfig.DEFAULT_SAME_MOD_NO_UNIFY, InstantUnifyConfig::setSameModNoUnify));
@@ -126,19 +109,6 @@ public final class ClothConfigIntegration {
         category.addEntry(control);
     }
 
-    private static AbstractConfigListEntry stringList(ConfigEntryBuilder entries, String key, List<? extends String> current,
-            List<String> defaults, Consumer<List<String>> saveConsumer) {
-        return entries.startStrList(field(key), new ArrayList<>(current))
-                .setDefaultValue(new ArrayList<>(defaults))
-                .setTooltipSupplier(tooltipSupplier(key))
-                .setInsertButtonEnabled(true)
-                .setDeleteButtonEnabled(true)
-                // Lets a new entry be placed in front of the row instead of only at the end of the list.
-                .setInsertInFront(true)
-                .setSaveConsumer(saveConsumer)
-                .build();
-    }
-
     private static AbstractConfigListEntry booleanEntry(ConfigEntryBuilder entries, String key, boolean current,
             boolean defaultValue, Consumer<Boolean> saveConsumer) {
         return entries.startBooleanToggle(field(key), current)
@@ -171,31 +141,5 @@ public final class ClothConfigIntegration {
 
     private static Component tooltip(String key) {
         return Component.translatable("instantunify.config." + key + ".tooltip");
-    }
-
-    /** One line per group, the names of a group separated by commas: {@code aluminum,aluminium,bauxite}. */
-    private static List<String> toLines(List<? extends List<? extends String>> groups) {
-        List<String> lines = new ArrayList<>(groups.size());
-        for (List<? extends String> group : groups) {
-            lines.add(String.join(",", group));
-        }
-        return lines;
-    }
-
-    private static List<List<String>> fromLines(List<String> lines) {
-        List<List<String>> groups = new ArrayList<>(lines.size());
-        for (String line : lines) {
-            List<String> names = new ArrayList<>();
-            for (String name : line.split(",")) {
-                String trimmed = name.trim();
-                if (!trimmed.isEmpty()) {
-                    names.add(trimmed);
-                }
-            }
-            if (!names.isEmpty()) {
-                groups.add(names);
-            }
-        }
-        return groups;
     }
 }

@@ -59,7 +59,8 @@ Please configure the lists to match your own modpack; the defaults are a startin
 
 With [Cloth Config](https://www.curseforge.com/minecraft/mc-mods/cloth-config) installed, the configuration can be
 edited in game from the **Config** button in the mod list. Cloth Config is optional: without it the mod works
-exactly the same and the file is edited by hand.
+exactly the same and the file is edited by hand. The screen holds the switches and the numbers; the lists have a
+page of their own (**List Editor**), where entries can be added, reordered and removed.
 
 Changes are applied immediately. On a dedicated server the file of the server is the one that counts, so edit it
 there (an operator can run `/instantunify reload` to apply an edit to players that are already online).
@@ -156,7 +157,8 @@ MIT. Original InstantUnify Reforged by GOOGLEPOX, see the LICENSE file for the f
 ### 游戏内配置界面
 
 安装 [Cloth Config](https://www.curseforge.com/minecraft/mc-mods/cloth-config) 后，可以在游戏内通过模组列表里的
-**配置** 按钮打开配置界面。Cloth Config 是可选的：不装它模组功能完全一样，直接手改配置文件即可。
+**配置** 按钮打开配置界面。Cloth Config 是可选的：不装它模组功能完全一样，直接手改配置文件即可。界面里是各项
+开关与数值；列表有单独的页面（**列表编辑器**），可以新增、排序、删除条目。
 
 修改会立即生效。在专用服务器上以服务端的那份配置为准，请在服务端修改（管理员可用 `/instantunify reload`
 把改动立即应用到已经在线的玩家身上）。

@@ -47,6 +47,9 @@
   "instantunify.config.namespaceAliases.tooltip": "Namespaces que significam o mesmo material. Uma linha por grupo, nomes separados por vírgulas; o primeiro nome de um grupo é o canônico",
   "instantunify.config.openListEditor": "Editor de listas...",
   "instantunify.editor.title": "Editar lista",
+  "instantunify.editor.category.tagLists": "Listas de tags",
+  "instantunify.editor.category.modLists": "Listas de mods",
+  "instantunify.editor.category.names": "Nomes e apelidos",
   "instantunify.editor.done": "Concluído",
   "instantunify.editor.cancel": "Cancelar",
   "instantunify.config.openSettings": "Configurações"

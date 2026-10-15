@@ -1,6 +1,7 @@
 package com.huziyang520.instantunify;
 
 import java.util.List;
+import java.util.Set;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -23,6 +24,15 @@ public final class InstantUnifyConfig {
         USE_BOTH_LISTS,
         USE_NO_LIST
     }
+
+    /**
+     * The ordered lists. They are edited by {@link ListEditorScreen} only: the settings screen leaves them out, so
+     * the same list can never be maintained in two places, and {@link ConfigFileFormatter} reflows exactly these
+     * keys in the file.
+     */
+    public static final Set<String> LIST_KEYS = Set.of(
+            "blacklist", "whitelist", "preferredMods", "blacklistMods",
+            "exemptMods", "blacklistItems", "alternatives", "namespaceAliases");
 
     // --- Default values (single source of truth) -------------------------------------------------------
 

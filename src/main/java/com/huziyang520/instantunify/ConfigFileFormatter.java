@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import net.minecraftforge.fml.loading.FMLPaths;
 
@@ -24,10 +23,6 @@ import net.minecraftforge.fml.loading.FMLPaths;
  * it may never leave a half written configuration behind.
  */
 public final class ConfigFileFormatter {
-
-    private static final Set<String> LIST_KEYS = Set.of(
-            "blacklist", "whitelist", "preferredMods", "blacklistMods",
-            "blacklistItems", "alternatives", "namespaceAliases");
 
     private static final int ATTEMPTS = 3;
     private static final long RETRY_DELAY_MILLIS = 100L;
@@ -103,7 +98,7 @@ public final class ConfigFileFormatter {
             int equals = body.indexOf('=');
             String key = equals < 0 ? "" : body.substring(0, equals).trim();
 
-            if (!LIST_KEYS.contains(key) || !isArrayStart(body, equals)) {
+            if (!InstantUnifyConfig.LIST_KEYS.contains(key) || !isArrayStart(body, equals)) {
                 appendLine(out, line, newline, i < lines.size() - 1);
                 continue;
             }

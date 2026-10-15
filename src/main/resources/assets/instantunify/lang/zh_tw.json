@@ -47,6 +47,9 @@
   "instantunify.config.namespaceAliases.tooltip": "表示同一種材料的命名空間。每行一組，組內以半形逗號分隔；組內第一個是標準命名空間",
   "instantunify.config.openListEditor": "清單編輯器…",
   "instantunify.editor.title": "編輯清單",
+  "instantunify.editor.category.tagLists": "標籤清單",
+  "instantunify.editor.category.modLists": "模組清單",
+  "instantunify.editor.category.names": "名稱與別名",
   "instantunify.editor.done": "完成",
   "instantunify.editor.cancel": "取消",
   "instantunify.config.openSettings": "設定"

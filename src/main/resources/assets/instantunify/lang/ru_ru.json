@@ -47,6 +47,9 @@
   "instantunify.config.namespaceAliases.tooltip": "Пространства имён, означающие один материал. Одна строка на группу, имена через запятую; первое имя группы — каноническое",
   "instantunify.config.openListEditor": "Редактор списков...",
   "instantunify.editor.title": "Редактирование списка",
+  "instantunify.editor.category.tagLists": "Списки тегов",
+  "instantunify.editor.category.modLists": "Списки модов",
+  "instantunify.editor.category.names": "Имена и псевдонимы",
   "instantunify.editor.done": "Готово",
   "instantunify.editor.cancel": "Отмена",
   "instantunify.config.openSettings": "Настройки"

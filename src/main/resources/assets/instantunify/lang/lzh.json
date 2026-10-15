@@ -47,6 +47,9 @@
   "instantunify.config.namespaceAliases.tooltip": "同名域者，一材也。每行一屬，以逗號間之；屬之首者為正",
   "instantunify.config.openListEditor": "修名錄…",
   "instantunify.editor.title": "修名錄",
+  "instantunify.editor.category.tagLists": "標籤名錄",
+  "instantunify.editor.category.modLists": "模組名錄",
+  "instantunify.editor.category.names": "別名錄",
   "instantunify.editor.done": "畢",
   "instantunify.editor.cancel": "罷",
   "instantunify.config.openSettings": "設置"

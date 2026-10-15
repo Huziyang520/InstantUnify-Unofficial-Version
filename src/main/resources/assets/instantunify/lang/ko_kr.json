@@ -47,6 +47,9 @@
   "instantunify.config.namespaceAliases.tooltip": "같은 재료를 뜻하는 네임스페이스입니다. 한 줄에 한 그룹, 이름은 쉼표로 구분합니다. 그룹의 첫 이름이 정규 네임스페이스입니다",
   "instantunify.config.openListEditor": "목록 편집기...",
   "instantunify.editor.title": "목록 편집",
+  "instantunify.editor.category.tagLists": "태그 목록",
+  "instantunify.editor.category.modLists": "모드 목록",
+  "instantunify.editor.category.names": "이름 및 별칭",
   "instantunify.editor.done": "완료",
   "instantunify.editor.cancel": "취소",
   "instantunify.config.openSettings": "설정"
