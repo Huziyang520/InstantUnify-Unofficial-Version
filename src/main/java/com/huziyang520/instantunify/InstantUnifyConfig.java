@@ -1,5 +1,6 @@
 package com.huziyang520.instantunify;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -112,15 +113,21 @@ public final class InstantUnifyConfig {
 
     public static final List<String> DEFAULT_BLACKLIST_ITEMS = List.of();
 
-    public static final List<List<String>> DEFAULT_ALTERNATIVES =
-            List.of(List.of("aluminum", "aluminium", "bauxite"));
+    /**
+     * One line per group, the names of a group separated by commas: {@code aluminum,aluminium,bauxite}. Plain
+     * strings on purpose - a list of lists is only understood by this mod's own screens, while the configuration
+     * screens of other mods read every element of a list as a string and fail on the nested form.
+     */
+    public static final List<String> DEFAULT_ALTERNATIVES = List.of("aluminum,aluminium,bauxite");
 
     /**
      * Namespaces that mean the same thing. On 1.20.1 the material tags live in {@code forge:}, while an
      * increasing number of mods already ship the {c:} names that became the standard later; both spellings of
      * the same material must end up in the same fingerprint. The first entry of a group is the canonical one.
+     * <p>
+     * One line per group, the names of a group separated by commas (see {@link #DEFAULT_ALTERNATIVES}).
      */
-    public static final List<List<String>> DEFAULT_NAMESPACE_ALIASES = List.of(List.of("forge", "c"));
+    public static final List<String> DEFAULT_NAMESPACE_ALIASES = List.of("forge,c");
 
     public static final boolean DEFAULT_DROP = true;
     public static final boolean DEFAULT_DEATH = true;
@@ -142,8 +149,8 @@ public final class InstantUnifyConfig {
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_MODS;
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> EXEMPT_MODS;
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> BLACKLIST_ITEMS;
-    private static final ForgeConfigSpec.ConfigValue<List<? extends List<? extends String>>> ALTERNATIVES;
-    private static final ForgeConfigSpec.ConfigValue<List<? extends List<? extends String>>> NAMESPACE_ALIASES;
+    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> ALTERNATIVES;
+    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> NAMESPACE_ALIASES;
 
     private static final ForgeConfigSpec.BooleanValue DROP;
     private static final ForgeConfigSpec.BooleanValue DEATH;
@@ -157,8 +164,6 @@ public final class InstantUnifyConfig {
     private static final ForgeConfigSpec.IntValue PERFORMANCE_LAZY_INDEX_REFRESH_SECONDS;
 
     private static final java.util.function.Predicate<Object> STRING_ELEMENT = o -> o instanceof String;
-    private static final java.util.function.Predicate<Object> STRING_LIST_ELEMENT =
-            o -> o instanceof List && (((List<?>) o).isEmpty() || ((List<?>) o).get(0) instanceof String);
 
     static {
         ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
@@ -188,13 +193,15 @@ public final class InstantUnifyConfig {
         BLACKLIST_ITEMS = b.comment("Blacklisted Items: these item ids are never replaced (empty by default)")
                 .defineList("blacklistItems", DEFAULT_BLACKLIST_ITEMS, STRING_ELEMENT);
 
-        ALTERNATIVES = b.comment("Tag names that should be unified even if they are different")
-                .defineList("alternatives", DEFAULT_ALTERNATIVES, STRING_LIST_ELEMENT);
+        ALTERNATIVES = b.comment("Tag names that should be unified even if they are different",
+                "One line per group, the names of a group separated by commas")
+                .defineList("alternatives", DEFAULT_ALTERNATIVES, STRING_ELEMENT);
 
         NAMESPACE_ALIASES = b.comment(
                 "Namespaces that mean the same thing, the first entry of a group is the canonical one",
+                "One line per group, the names of a group separated by commas",
                 "Keeps items that only ship one of the two spellings (forge: and c:) in the same group")
-                .defineList("namespaceAliases", DEFAULT_NAMESPACE_ALIASES, STRING_LIST_ELEMENT);
+                .defineList("namespaceAliases", DEFAULT_NAMESPACE_ALIASES, STRING_ELEMENT);
 
         SAME_MOD_NO_UNIFY = b.comment(
                 "Never unify two items of the same mod with each other",
@@ -270,12 +277,13 @@ public final class InstantUnifyConfig {
         return BLACKLIST_ITEMS.get();
     }
 
-    public static List<? extends List<? extends String>> alternatives() {
-        return ALTERNATIVES.get();
+    /** The configured groups: one line per group, the names of a group separated by commas. */
+    public static List<List<String>> alternatives() {
+        return groups(ALTERNATIVES.get());
     }
 
-    public static List<? extends List<? extends String>> namespaceAliases() {
-        return NAMESPACE_ALIASES.get();
+    public static List<List<String>> namespaceAliases() {
+        return groups(NAMESPACE_ALIASES.get());
     }
 
     public static boolean drop() {
@@ -355,12 +363,12 @@ public final class InstantUnifyConfig {
     }
 
     public static void setAlternatives(List<List<String>> value) {
-        ALTERNATIVES.set(value);
+        ALTERNATIVES.set(lines(value));
         persist();
     }
 
     public static void setNamespaceAliases(List<List<String>> value) {
-        NAMESPACE_ALIASES.set(value);
+        NAMESPACE_ALIASES.set(lines(value));
         persist();
     }
 
@@ -406,10 +414,39 @@ public final class InstantUnifyConfig {
 
     /**
      * A change only updates the value in memory and drops the caches. Writing the file is left to the caller
-     * (the screen writes once when it closes), because Forge and the mod would otherwise write the same file
-     * at the same time and the file ends up truncated or locked.
+     * (the screen writes once when it closes), because the loader and the mod would otherwise write the same
+     * file at the same time and the file ends up truncated or locked.
      */
     private static void persist() {
         ItemUnifier.reload();
+    }
+
+    /** Splits every configured line at its commas, which is the stored form of a grouped list. */
+    private static List<List<String>> groups(List<? extends String> lines) {
+        List<List<String>> groups = new ArrayList<>(lines.size());
+        for (String line : lines) {
+            List<String> names = new ArrayList<>();
+            for (String name : line.split(",")) {
+                String trimmed = name.trim();
+                if (!trimmed.isEmpty()) {
+                    names.add(trimmed);
+                }
+            }
+            if (!names.isEmpty()) {
+                groups.add(names);
+            }
+        }
+        return groups;
+    }
+
+    /** One line per group, the names of a group separated by commas. */
+    private static List<String> lines(List<List<String>> groups) {
+        List<String> lines = new ArrayList<>(groups.size());
+        for (List<String> group : groups) {
+            if (!group.isEmpty()) {
+                lines.add(String.join(",", group));
+            }
+        }
+        return lines;
     }
 }

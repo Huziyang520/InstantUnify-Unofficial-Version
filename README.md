@@ -46,10 +46,12 @@ Only items **without** custom data take part. Enchanted, damaged or renamed item
   ship variants that only make sense next to each other.
 - **`blacklistItems`** — item ids that are never replaced, for a single variant that has to stay as it is.
   Empty by default.
-- **`alternatives`** — tag names that mean the same material, e.g. `aluminum`, `aluminium` and `bauxite` are all
-  treated as the same material. Note that the default also treats bauxite (aluminium ore) as aluminium.
-- **`namespaceAliases`** — namespaces that mean the same material. The default treats `c:` and `forge:` as the
-  same, so a mod that ships only one of the two spellings is still grouped with the other one.
+- **`alternatives`** — tag names that mean the same material, one line per group with the names of a group
+  separated by commas: `aluminum,aluminium,bauxite` treats all three as the same material. Note that the default
+  also treats bauxite (aluminium ore) as aluminium.
+- **`namespaceAliases`** — namespaces that mean the same material, one line per group with the names separated by
+  commas. The default `forge,c` treats both as the same, so a mod that ships only one of the two spellings is
+  still grouped with the other one.
 - **`performance.indexCache` / `performance.lazyIndexRefreshSeconds`** — performance tuning only, they do not
   change the result. Leave them alone unless you are troubleshooting.
 
@@ -158,10 +160,10 @@ MIT. Original InstantUnify Reforged by GOOGLEPOX, see the LICENSE file for the f
 - **`sameModNoUnify`（同模组物品不统一）** —— 默认开启：同一个模组内的两个物品不会互相统一。
   模组自带的变体往往只有放在一起才有意义。
 - **`blacklistItems`** —— 永远不参与替换的物品 id，用于让某个单独的变体保持原样。默认为空。
-- **`alternatives`** —— 表示同一种材料的标签名，例如 `aluminum`、`aluminium`、`bauxite` 会被视为同一材料。
-  注意默认值同时把铝土矿（bauxite）当作铝。
-- **`namespaceAliases`** —— 表示同一种材料的命名空间。默认把 `c:` 与 `forge:` 视为同一套，因此只写了其中
-  一种拼法的模组也能与另一种归到同一组。
+- **`alternatives`** —— 表示同一种材料的标签名，一行一组、组内用英文逗号分隔：`aluminum,aluminium,bauxite`
+  会把三者视为同一材料。注意默认值同时把铝土矿（bauxite）当作铝。
+- **`namespaceAliases`** —— 表示同一种材料的命名空间，一行一组、组内用英文逗号分隔。默认值 `forge,c` 把两者
+  视为同一套，因此只写了其中一种拼法的模组也能与另一种归到同一组。
 - **`performance.indexCache` / `performance.lazyIndexRefreshSeconds`** —— 纯性能选项，不影响统一结果。
   除排查问题外建议保持默认。
 

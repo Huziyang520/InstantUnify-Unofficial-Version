@@ -21,6 +21,10 @@ public class InstantUnify {
     @SuppressWarnings("removal")
     public InstantUnify() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+        // A file written by an older version stores the grouped lists as a list of lists, which the generic
+        // configuration screens of other mods cannot read. It is rewritten before the configuration is
+        // registered, because Forge reads the file only after the mod constructors have run.
+        ConfigFileFormatter.format();
         InstantUnifyConfig.register();
         LootUnifyModifiers.register(modEventBus);
         modEventBus.register(new ConfigReloadEventHandler());

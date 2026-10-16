@@ -120,10 +120,10 @@ public class ListEditorScreen extends Screen {
                 () -> copy(InstantUnifyConfig.DEFAULT_BLACKLIST_ITEMS)));
         editors.add(new Editor(2, "alternatives", () -> toLines(InstantUnifyConfig.alternatives()),
                 lines -> InstantUnifyConfig.setAlternatives(fromLines(lines)),
-                () -> toLines(InstantUnifyConfig.DEFAULT_ALTERNATIVES)));
+                () -> copy(InstantUnifyConfig.DEFAULT_ALTERNATIVES)));
         editors.add(new Editor(2, "namespaceAliases", () -> toLines(InstantUnifyConfig.namespaceAliases()),
                 lines -> InstantUnifyConfig.setNamespaceAliases(fromLines(lines)),
-                () -> toLines(InstantUnifyConfig.DEFAULT_NAMESPACE_ALIASES)));
+                () -> copy(InstantUnifyConfig.DEFAULT_NAMESPACE_ALIASES)));
     }
 
     @Override

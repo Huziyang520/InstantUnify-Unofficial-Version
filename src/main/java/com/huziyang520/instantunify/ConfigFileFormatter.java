@@ -12,11 +12,18 @@ import java.util.List;
 import net.minecraftforge.fml.loading.FMLPaths;
 
 /**
- * Rewrites the list values of our own configuration file so that every entry has its own line.
+ * Rewrites the list values of our own configuration file so that every entry has its own line, and turns a
+ * nested group - the older form of {@code alternatives} and {@code namespaceAliases} - into the flat form of the
+ * same group.
  * <p>
  * Forge writes lists inline and offers no way to change that (its writer cannot be replaced through any public
  * API), so the file is reflowed afterwards. This is a pure text transformation: entries are copied verbatim, so
  * values, comments and the order of the keys can not change. Anything not understood is left exactly as it is.
+ * <p>
+ * The nested form has to go because a list of lists is only understood by this mod's own screens: the generic
+ * configuration screens of other mods (Configured, for one) read every element of a list as a String and fail
+ * with a ClassCastException on an element that is itself a list. The transformation is idempotent, so running it
+ * on every start and every save is safe.
  * <p>
  * Forge saves the same file from its own threads, so the new content is written to a temporary file and moved
  * into place in one step, and every failure is swallowed: a formatting problem may never break the game, and
@@ -132,7 +139,7 @@ public final class ConfigFileFormatter {
 
             out.append(indent).append(key).append(" = [");
             for (int e = 0; e < elements.size(); e++) {
-                out.append(newline).append(indent).append('\t').append(elements.get(e));
+                out.append(newline).append(indent).append('\t').append(flatten(elements.get(e)));
                 if (e < elements.size() - 1) {
                     out.append(',');
                 }
@@ -238,5 +245,29 @@ public final class ConfigFileFormatter {
         }
         parts.removeIf(String::isEmpty);
         return parts;
+    }
+
+    /**
+     * Turns a nested group ({@code ["a", "b"]}) into the flat form of the same group ({@code "a,b"}).
+     * <p>
+     * Nothing but a group of plain quoted names is touched, so a value this transformation does not understand is
+     * written back exactly as it was read.
+     */
+    private static String flatten(String element) {
+        if (!element.startsWith("[")) {
+            return element;
+        }
+        List<String> names = splitTopLevel(element);
+        StringBuilder joined = new StringBuilder(element.length());
+        for (String name : names) {
+            if (name.length() < 2 || !name.startsWith("\"") || !name.endsWith("\"") || name.indexOf('\\') >= 0) {
+                return element;
+            }
+            if (joined.length() > 0) {
+                joined.append(',');
+            }
+            joined.append(name, 1, name.length() - 1);
+        }
+        return '"' + joined.toString() + '"';
     }
 }
