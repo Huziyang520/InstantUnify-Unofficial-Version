@@ -50,7 +50,10 @@
   "instantunify.editor.category.tagLists": "タグリスト",
   "instantunify.editor.category.modLists": "Modリスト",
   "instantunify.editor.category.names": "名前と別名",
-  "instantunify.editor.done": "完了",
+  "instantunify.editor.save": "保存",
+  "instantunify.editor.resetList": "このリストをリセット",
+  "instantunify.editor.resetAll": "すべてのリストをリセット",
+  "instantunify.editor.add": "項目を追加",
   "instantunify.editor.cancel": "キャンセル",
   "instantunify.config.openSettings": "設定"
 }

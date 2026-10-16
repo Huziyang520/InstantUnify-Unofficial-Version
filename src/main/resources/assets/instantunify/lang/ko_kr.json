@@ -50,7 +50,10 @@
   "instantunify.editor.category.tagLists": "태그 목록",
   "instantunify.editor.category.modLists": "모드 목록",
   "instantunify.editor.category.names": "이름 및 별칭",
-  "instantunify.editor.done": "완료",
+  "instantunify.editor.save": "저장",
+  "instantunify.editor.resetList": "이 목록 초기화",
+  "instantunify.editor.resetAll": "모든 목록 초기화",
+  "instantunify.editor.add": "항목 추가",
   "instantunify.editor.cancel": "취소",
   "instantunify.config.openSettings": "설정"
 }

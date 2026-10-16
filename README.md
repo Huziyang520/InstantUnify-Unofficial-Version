@@ -57,10 +57,23 @@ Please configure the lists to match your own modpack; the defaults are a startin
 
 ### In-game configuration
 
-With [Cloth Config](https://www.curseforge.com/minecraft/mc-mods/cloth-config) installed, the configuration can be
-edited in game from the **Config** button in the mod list. Cloth Config is optional: without it the mod works
-exactly the same and the file is edited by hand. The screen holds the switches and the numbers; the lists have a
-page of their own (**List Editor**), where entries can be added, reordered and removed.
+The configuration can be edited in game from the **Config** button in the mod list, with
+[Cloth Config](https://www.curseforge.com/minecraft/mc-mods/cloth-config) installed. Cloth Config is optional:
+without it the mod works exactly the same and the file is edited by hand.
+
+**Settings** holds the switches and the numbers. The lists are kept out of it on purpose: they have a page of
+their own, the **List Editor**.
+
+The List Editor works on one list at a time:
+
+- the lists are grouped into tag lists, mod lists, and names and aliases — pick a category, then the list;
+- an entry can be edited in place, moved up or down and removed; new entries are added with **Add Entry** (which
+  also works while a list is still empty) or with the **+** of a row;
+- what the selected list is for is written under the entries, so it never has to be looked up elsewhere;
+- **Reset This List** restores the list being edited, **Reset All Lists** restores every list of this mod to the
+  defaults documented above;
+- **Save** applies what was typed, **Cancel** discards the edits of the list being edited, and switching to
+  another list applies them as well.
 
 Changes are applied immediately. On a dedicated server the file of the server is the one that counts, so edit it
 there (an operator can run `/instantunify reload` to apply an edit to players that are already online).
@@ -157,8 +170,17 @@ MIT. Original InstantUnify Reforged by GOOGLEPOX, see the LICENSE file for the f
 ### 游戏内配置界面
 
 安装 [Cloth Config](https://www.curseforge.com/minecraft/mc-mods/cloth-config) 后，可以在游戏内通过模组列表里的
-**配置** 按钮打开配置界面。Cloth Config 是可选的：不装它模组功能完全一样，直接手改配置文件即可。界面里是各项
-开关与数值；列表有单独的页面（**列表编辑器**），可以新增、排序、删除条目。
+**配置** 按钮打开配置界面。Cloth Config 是可选的：不装它模组功能完全一样，直接手改配置文件即可。
+
+**设置** 里是各项开关与数值；列表被特意排除在外，它们有单独的页面：**列表编辑器**。
+
+列表编辑器一次只编辑一个列表：
+
+- 列表按用途分为标签列表、模组列表、名称与别名三类，先点分类、再点列表；
+- 每一条都可以就地修改、上下移动、删除；新增条目用 **添加条目**（列表为空时同样可用），或用某一行的 **+**；
+- 当前列表的用途写在条目下方，不需要另找说明；
+- **重置当前列表** 恢复正在编辑的这一列，**重置全部列表** 把本模组的所有列表恢复为上面记录的默认值；
+- **保存** 应用已输入的内容，**取消** 放弃当前列表的改动；切换到别的列表时会先把改动应用掉。
 
 修改会立即生效。在专用服务器上以服务端的那份配置为准，请在服务端修改（管理员可用 `/instantunify reload`
 把改动立即应用到已经在线的玩家身上）。

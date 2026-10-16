@@ -16,13 +16,18 @@ import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
 
 /**
- * Editor for the ordered configuration lists: add an entry anywhere, move it up or down, delete it.
+ * Editor for the ordered configuration lists: add an entry anywhere, move it up or down, delete it, and restore a
+ * list - or every list - to the defaults of {@link InstantUnifyConfig}.
  * <p>
  * The lists are the only thing edited here (the settings screen shows the switches and the numbers only), and the
  * rows are built from plain vanilla widgets because the order of the entries has to be fully under our control.
  * <p>
  * The lists are grouped into categories. What the selected list is for is written along the bottom, which is the
  * one thing the settings screen used to explain as a tooltip.
+ * <p>
+ * The bottom row is laid out from the measured label widths, so the paging buttons and the four actions keep
+ * their places in every language and at every window size; the actions move to a row of their own when they no
+ * longer fit next to the paging buttons.
  * <p>
  * All widget changes are queued to the next tick: rebuilding the rows from inside a button callback would remove
  * and re-add the very widget that is being dispatched.
@@ -40,11 +45,15 @@ public class ListEditorScreen extends Screen {
     private static final int ROW_BUTTON_SIZE = 20;
     private static final int ROW_BUTTON_GAP = 2;
     private static final int CONTENT_GAP = 6;
-    private static final int BOTTOM_BUTTONS_HEIGHT = 20;
+    private static final int BOTTOM_BUTTON_HEIGHT = 20;
+    private static final int BOTTOM_BUTTON_GAP = 4;
+    private static final int BOTTOM_BUTTON_MIN_WIDTH = 60;
+    private static final int BUTTON_TEXT_PADDING = 12;
     private static final int PAGE_BUTTON_SIZE = 20;
-    private static final int PAGE_LEFT_X = 10;
     private static final int PAGE_GAP = 64;
-    private static final int PAGE_RIGHT_X = PAGE_LEFT_X + PAGE_BUTTON_SIZE + PAGE_GAP;
+    /** Space kept free under the last row for the button that adds an entry. */
+    private static final int ADD_BUTTON_HEIGHT = FIELD_HEIGHT + 4;
+    private static final int ADD_BUTTON_MIN_WIDTH = 120;
 
     /** The categories, in the order their tabs are shown in. */
     private static final String[] CATEGORY_KEYS = {
@@ -62,6 +71,8 @@ public class ListEditorScreen extends Screen {
     private int category;
     private int selected;
     private int page;
+    /** How many rows the bottom controls take, i.e. whether the actions fit next to the paging buttons. */
+    private int bottomRows = 1;
     private boolean initialised;
     private boolean rebuildQueued;
 
@@ -70,18 +81,24 @@ public class ListEditorScreen extends Screen {
         this.parent = parent;
     }
 
-    /** One editable list: the category it belongs to plus accessors working with one entry per line. */
+    /**
+     * One editable list: the category it belongs to plus accessors working with one entry per line, the current
+     * value and the default value it can be reset to.
+     */
     private static final class Editor {
         private final int category;
         private final String key;
         private final Supplier<List<String>> getter;
         private final Consumer<List<String>> setter;
+        private final Supplier<List<String>> defaults;
 
-        private Editor(int category, String key, Supplier<List<String>> getter, Consumer<List<String>> setter) {
+        private Editor(int category, String key, Supplier<List<String>> getter, Consumer<List<String>> setter,
+                Supplier<List<String>> defaults) {
             this.category = category;
             this.key = key;
             this.getter = getter;
             this.setter = setter;
+            this.defaults = defaults;
         }
     }
 
@@ -89,16 +106,24 @@ public class ListEditorScreen extends Screen {
         if (!editors.isEmpty()) {
             return;
         }
-        editors.add(new Editor(0, "blacklist", () -> copy(InstantUnifyConfig.blacklist()), InstantUnifyConfig::setBlacklist));
-        editors.add(new Editor(0, "whitelist", () -> copy(InstantUnifyConfig.whitelist()), InstantUnifyConfig::setWhitelist));
-        editors.add(new Editor(1, "preferredMods", () -> copy(InstantUnifyConfig.preferredMods()), InstantUnifyConfig::setPreferredMods));
-        editors.add(new Editor(1, "blacklistMods", () -> copy(InstantUnifyConfig.blacklistMods()), InstantUnifyConfig::setBlacklistMods));
-        editors.add(new Editor(1, "exemptMods", () -> copy(InstantUnifyConfig.exemptMods()), InstantUnifyConfig::setExemptMods));
-        editors.add(new Editor(2, "blacklistItems", () -> copy(InstantUnifyConfig.blacklistItems()), InstantUnifyConfig::setBlacklistItems));
+        editors.add(new Editor(0, "blacklist", () -> copy(InstantUnifyConfig.blacklist()), InstantUnifyConfig::setBlacklist,
+                () -> copy(InstantUnifyConfig.DEFAULT_BLACKLIST)));
+        editors.add(new Editor(0, "whitelist", () -> copy(InstantUnifyConfig.whitelist()), InstantUnifyConfig::setWhitelist,
+                () -> copy(InstantUnifyConfig.DEFAULT_WHITELIST)));
+        editors.add(new Editor(1, "preferredMods", () -> copy(InstantUnifyConfig.preferredMods()), InstantUnifyConfig::setPreferredMods,
+                () -> copy(InstantUnifyConfig.DEFAULT_PREFERRED_MODS)));
+        editors.add(new Editor(1, "blacklistMods", () -> copy(InstantUnifyConfig.blacklistMods()), InstantUnifyConfig::setBlacklistMods,
+                () -> copy(InstantUnifyConfig.DEFAULT_BLACKLIST_MODS)));
+        editors.add(new Editor(1, "exemptMods", () -> copy(InstantUnifyConfig.exemptMods()), InstantUnifyConfig::setExemptMods,
+                () -> copy(InstantUnifyConfig.DEFAULT_EXEMPT_MODS)));
+        editors.add(new Editor(2, "blacklistItems", () -> copy(InstantUnifyConfig.blacklistItems()), InstantUnifyConfig::setBlacklistItems,
+                () -> copy(InstantUnifyConfig.DEFAULT_BLACKLIST_ITEMS)));
         editors.add(new Editor(2, "alternatives", () -> toLines(InstantUnifyConfig.alternatives()),
-                lines -> InstantUnifyConfig.setAlternatives(fromLines(lines))));
+                lines -> InstantUnifyConfig.setAlternatives(fromLines(lines)),
+                () -> toLines(InstantUnifyConfig.DEFAULT_ALTERNATIVES)));
         editors.add(new Editor(2, "namespaceAliases", () -> toLines(InstantUnifyConfig.namespaceAliases()),
-                lines -> InstantUnifyConfig.setNamespaceAliases(fromLines(lines))));
+                lines -> InstantUnifyConfig.setNamespaceAliases(fromLines(lines)),
+                () -> toLines(InstantUnifyConfig.DEFAULT_NAMESPACE_ALIASES)));
     }
 
     @Override
@@ -115,18 +140,7 @@ public class ListEditorScreen extends Screen {
         tabWidgets.clear();
         rowWidgets.clear();
 
-        int bottom = bottomY();
-        addRenderableWidget(Button.builder(Component.literal("<"), button -> changePage(-1))
-                .bounds(PAGE_LEFT_X, bottom, PAGE_BUTTON_SIZE, BOTTOM_BUTTONS_HEIGHT).build());
-        addRenderableWidget(Button.builder(Component.literal(">"), button -> changePage(1))
-                .bounds(PAGE_RIGHT_X, bottom, PAGE_BUTTON_SIZE, BOTTOM_BUTTONS_HEIGHT).build());
-        addRenderableWidget(Button.builder(Component.translatable("instantunify.editor.done"), button -> {
-            applyWorking();
-            onClose();
-        }).bounds(this.width / 2 - 105, bottom, 100, BOTTOM_BUTTONS_HEIGHT).build());
-        addRenderableWidget(Button.builder(Component.translatable("instantunify.editor.cancel"), button -> onClose())
-                .bounds(this.width / 2 + 5, bottom, 100, BOTTOM_BUTTONS_HEIGHT).build());
-
+        addBottomWidgets();
         rebuildTabs();
         rebuildRows();
     }
@@ -149,8 +163,17 @@ public class ListEditorScreen extends Screen {
         return tabY(TAB_ROWS - 1) + TAB_HEIGHT + CONTENT_GAP;
     }
 
+    /** The width the paging buttons and their page indicator need on the bottom row. */
+    private int pagingWidth() {
+        return PAGE_BUTTON_SIZE + PAGE_GAP + PAGE_BUTTON_SIZE;
+    }
+
     private int bottomY() {
-        return this.height - BOTTOM_BUTTONS_HEIGHT - 8;
+        return this.height - BOTTOM_BUTTON_HEIGHT - 8;
+    }
+
+    private int bottomTop() {
+        return bottomY() - (bottomRows - 1) * (BOTTOM_BUTTON_HEIGHT + BOTTOM_BUTTON_GAP);
     }
 
     private int descriptionWidth() {
@@ -169,11 +192,12 @@ public class ListEditorScreen extends Screen {
     }
 
     private int descriptionTop() {
-        return bottomY() - CONTENT_GAP - descriptionHeight();
+        return bottomTop() - CONTENT_GAP - descriptionHeight();
     }
 
     private int rowsPerPage() {
-        return Math.max(1, (descriptionTop() - CONTENT_GAP - rowsTop()) / ROW_HEIGHT);
+        int available = descriptionTop() - CONTENT_GAP - rowsTop() - ADD_BUTTON_HEIGHT;
+        return Math.max(1, available / ROW_HEIGHT);
     }
 
     // --- Widgets -----------------------------------------------------------------------------------------
@@ -186,6 +210,60 @@ public class ListEditorScreen extends Screen {
     private void register(AbstractWidget widget) {
         addRenderableWidget(widget);
         rowWidgets.add(widget);
+    }
+
+    /**
+     * Adds the paging buttons and the four actions. The actions are right aligned and use as many rows as they
+     * need, so nothing overlaps however long their labels are in the current language.
+     */
+    private void addBottomWidgets() {
+        List<Button> actions = new ArrayList<>();
+        actions.add(Button.builder(Component.translatable("instantunify.editor.resetList"), button -> resetCurrentList()).build());
+        actions.add(Button.builder(Component.translatable("instantunify.editor.resetAll"), button -> resetAllLists()).build());
+        actions.add(Button.builder(Component.translatable("instantunify.editor.save"), button -> {
+            applyWorking();
+            onClose();
+        }).build());
+        actions.add(Button.builder(Component.translatable("instantunify.editor.cancel"), button -> onClose()).build());
+
+        int[] widths = new int[actions.size()];
+        for (int i = 0; i < actions.size(); i++) {
+            widths[i] = Math.max(BOTTOM_BUTTON_MIN_WIDTH,
+                    this.font.width(actions.get(i).getMessage()) + BUTTON_TEXT_PADDING);
+        }
+
+        int usable = Math.max(80, this.width - 2 * TAB_MARGIN);
+        bottomRows = 1;
+        int used = pagingWidth() + BOTTOM_BUTTON_GAP;
+        for (int width : widths) {
+            if (used + width > usable) {
+                bottomRows++;
+                used = 0;
+            }
+            used += width + BOTTOM_BUTTON_GAP;
+        }
+
+        int cursor = this.width - TAB_MARGIN;
+        int row = bottomRows - 1;
+        for (int i = actions.size() - 1; i >= 0; i--) {
+            int minX = row == bottomRows - 1 ? TAB_MARGIN + pagingWidth() + BOTTOM_BUTTON_GAP : TAB_MARGIN;
+            if (cursor - widths[i] < minX && row > 0) {
+                row--;
+                cursor = this.width - TAB_MARGIN;
+                minX = TAB_MARGIN;
+            }
+            cursor -= widths[i];
+            Button button = actions.get(i);
+            button.setWidth(widths[i]);
+            button.setPosition(cursor, bottomY() - row * (BOTTOM_BUTTON_HEIGHT + BOTTOM_BUTTON_GAP));
+            addRenderableWidget(button);
+            cursor -= BOTTOM_BUTTON_GAP;
+        }
+
+        addRenderableWidget(Button.builder(Component.literal("<"), button -> changePage(-1))
+                .bounds(TAB_MARGIN, bottomY(), PAGE_BUTTON_SIZE, BOTTOM_BUTTON_HEIGHT).build());
+        addRenderableWidget(Button.builder(Component.literal(">"), button -> changePage(1))
+                .bounds(TAB_MARGIN + PAGE_BUTTON_SIZE + PAGE_GAP, bottomY(), PAGE_BUTTON_SIZE, BOTTOM_BUTTON_HEIGHT).build());
     }
 
     private void rebuildTabs() {
@@ -227,6 +305,7 @@ public class ListEditorScreen extends Screen {
         int fieldWidth = Math.max(60,
                 this.width - 2 * TAB_MARGIN - 20 - 4 * (ROW_BUTTON_SIZE + ROW_BUTTON_GAP));
         int y = rowsTop();
+        int rendered = 0;
         for (int slot = 0; slot < perPage; slot++) {
             int index = page * perPage + slot;
             if (index >= working.size()) {
@@ -255,7 +334,15 @@ public class ListEditorScreen extends Screen {
                     .bounds(buttonX + 3 * ROW_BUTTON_SIZE, y, ROW_BUTTON_SIZE, FIELD_HEIGHT).build());
 
             y += ROW_HEIGHT;
+            rendered++;
         }
+
+        // Under the last row, so a new entry can be added even when the list is still empty.
+        Component label = Component.translatable("instantunify.editor.add");
+        register(Button.builder(label, button -> insertAfter(working.size() - 1))
+                .bounds(20, rowsTop() + rendered * ROW_HEIGHT,
+                        Math.max(ADD_BUTTON_MIN_WIDTH, this.font.width(label) + BUTTON_TEXT_PADDING), FIELD_HEIGHT)
+                .build());
     }
 
     /**
@@ -330,6 +417,25 @@ public class ListEditorScreen extends Screen {
         InstantUnifyConfig.save();
     }
 
+    /** Restores the list that is being edited, and nothing else. */
+    private void resetCurrentList() {
+        working = new ArrayList<>(editors.get(selected).defaults.get());
+        page = 0;
+        applyWorking();
+        requestRebuild();
+    }
+
+    /** Restores every list of this mod, the lists that are not on screen included. */
+    private void resetAllLists() {
+        for (Editor editor : editors) {
+            editor.setter.accept(new ArrayList<>(editor.defaults.get()));
+        }
+        InstantUnifyConfig.save();
+        working = new ArrayList<>(editors.get(selected).getter.get());
+        page = 0;
+        requestRebuild();
+    }
+
     private void insertAfter(int index) {
         working.add(Math.min(index + 1, working.size()), "");
         requestRebuild();
@@ -377,11 +483,8 @@ public class ListEditorScreen extends Screen {
             y += this.font.lineHeight + 1;
         }
 
-        if (working.isEmpty()) {
-            graphics.drawCenteredString(this.font, Component.literal("-"), this.width / 2, rowsTop() + 4, 0x808080);
-        }
         // Page indicator between the two paging buttons, e.g. "2/3".
-        int pageCenterX = PAGE_LEFT_X + PAGE_BUTTON_SIZE + PAGE_GAP / 2;
+        int pageCenterX = TAB_MARGIN + PAGE_BUTTON_SIZE + PAGE_GAP / 2;
         graphics.drawCenteredString(this.font, Component.literal((page + 1) + "/" + pageCount()),
                 pageCenterX, bottomY() + 6, 0xFFFFFF);
         super.render(graphics, mouseX, mouseY, partialTick);
