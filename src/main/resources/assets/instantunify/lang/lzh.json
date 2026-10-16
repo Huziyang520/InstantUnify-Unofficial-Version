@@ -51,7 +51,10 @@
   "instantunify.editor.category.tagLists": "標籤名錄",
   "instantunify.editor.category.modLists": "模組名錄",
   "instantunify.editor.category.names": "別名錄",
-  "instantunify.editor.done": "畢",
+  "instantunify.editor.save": "存",
+  "instantunify.editor.resetList": "復此名錄",
+  "instantunify.editor.resetAll": "復諸名錄",
+  "instantunify.editor.add": "增一項",
   "instantunify.editor.cancel": "罷",
   "instantunify.config.openSettings": "設置"
 }

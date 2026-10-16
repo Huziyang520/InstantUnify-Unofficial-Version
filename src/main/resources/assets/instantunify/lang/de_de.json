@@ -51,7 +51,10 @@
   "instantunify.editor.category.tagLists": "Tag-Listen",
   "instantunify.editor.category.modLists": "Mod-Listen",
   "instantunify.editor.category.names": "Namen und Aliasse",
-  "instantunify.editor.done": "Fertig",
+  "instantunify.editor.save": "Speichern",
+  "instantunify.editor.resetList": "Diese Liste zurücksetzen",
+  "instantunify.editor.resetAll": "Alle Listen zurücksetzen",
+  "instantunify.editor.add": "Eintrag hinzufügen",
   "instantunify.editor.cancel": "Abbrechen",
   "instantunify.config.openSettings": "Einstellungen"
 }
