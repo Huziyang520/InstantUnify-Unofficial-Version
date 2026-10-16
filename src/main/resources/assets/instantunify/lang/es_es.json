@@ -51,7 +51,10 @@
   "instantunify.editor.category.tagLists": "Listas de etiquetas",
   "instantunify.editor.category.modLists": "Listas de mods",
   "instantunify.editor.category.names": "Nombres y alias",
-  "instantunify.editor.done": "Hecho",
+  "instantunify.editor.save": "Guardar",
+  "instantunify.editor.resetList": "Restablecer esta lista",
+  "instantunify.editor.resetAll": "Restablecer todas las listas",
+  "instantunify.editor.add": "Añadir entrada",
   "instantunify.editor.cancel": "Cancelar",
   "instantunify.config.openSettings": "Ajustes"
 }

@@ -51,7 +51,10 @@
   "instantunify.editor.category.tagLists": "標籤列表",
   "instantunify.editor.category.modLists": "模組列表",
   "instantunify.editor.category.names": "名稱與別名",
-  "instantunify.editor.done": "完成",
+  "instantunify.editor.save": "儲存",
+  "instantunify.editor.resetList": "重設此清單",
+  "instantunify.editor.resetAll": "重設全部清單",
+  "instantunify.editor.add": "新增項目",
   "instantunify.editor.cancel": "取消",
   "instantunify.config.openSettings": "設定"
 }
