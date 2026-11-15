@@ -1,3 +1,5 @@
+![InstantUnify Unofficial Version](https://raw.githubusercontent.com/Huziyang520/InstantUnify-Unofficial-Version/1.20.1/src/main/resources/icon.png)
+
 # InstantUnify Unofficial Version
 
 Unifies duplicate materials. When several mods add their own version of the same material — copper ingots, tin ore,
@@ -59,9 +61,9 @@ Please configure the lists to match your own modpack; the defaults are a startin
 
 ### In-game configuration
 
-The configuration can be edited in game from the **Config** button in the mod list, with
-[Cloth Config](https://www.curseforge.com/minecraft/mc-mods/cloth-config) installed. Cloth Config is optional:
-without it the mod works exactly the same and the file is edited by hand.
+The configuration can be edited in game from the **Config** button in the mod list. The screen is provided by
+[Neo Configuration Screen Port](https://www.curseforge.com/minecraft/mc-mods/neoconfigurationscreenport), which has to
+be installed on the client; the buttons below open its **Settings** page and the **List Editor**.
 
 **Settings** holds the switches and the numbers. The lists are kept out of it on purpose: they have a page of
 their own, the **List Editor**.
@@ -171,8 +173,8 @@ MIT. Original InstantUnify Reforged by GOOGLEPOX, see the LICENSE file for the f
 
 ### 游戏内配置界面
 
-安装 [Cloth Config](https://www.curseforge.com/minecraft/mc-mods/cloth-config) 后，可以在游戏内通过模组列表里的
-**配置** 按钮打开配置界面。Cloth Config 是可选的：不装它模组功能完全一样，直接手改配置文件即可。
+配置界面由 [Neo Configuration Screen Port](https://www.curseforge.com/minecraft/mc-mods/neoconfigurationscreenport)
+提供，需要装在客户端；装好后在模组列表点 **配置**，里面的按钮分别打开它的 **设置** 页与本模组的 **列表编辑器**。
 
 **设置** 里是各项开关与数值；列表被特意排除在外，它们有单独的页面：**列表编辑器**。
 
