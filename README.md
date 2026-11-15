@@ -6,7 +6,7 @@ Unifies duplicate materials. When several mods add their own version of the same
 aluminium dust — modpacks end up with items that look the same but cannot stack or be used interchangeably.
 This mod replaces them with one single version, so a pack behaves as if only one mod added that material.
 
-This is an unofficial continuation of InstantUnify by KidsDontPlay and of
+This is an unofficial continuation of [InstantUnify](https://www.curseforge.com/minecraft/mc-mods/instantunify) by KidsDontPlay and of
 [InstantUnify Reforged](https://www.curseforge.com/minecraft/mc-mods/instantunify-reforged) by GOOGLEPOX, rebuilt and extended.
 
 ![What InstantUnify does](https://raw.githubusercontent.com/Huziyang520/InstantUnify-Unofficial-Version/1.20.1/promo.png)
@@ -126,7 +126,7 @@ MIT. Original InstantUnify by KidsDontPlay, InstantUnify Reforged by GOOGLEPOX; 
 却无法堆叠也无法互相替代的物品。本模组把它们替换成同一个版本，让整合包表现得像是只有其中一个模组添加了
 这种材料。
 
-本项目是 KidsDontPlay 的 InstantUnify 与其延续版 GOOGLEPOX 的 [InstantUnify Reforged](https://www.curseforge.com/minecraft/mc-mods/instantunify-reforged) 的非官方延续版。
+本项目是 KidsDontPlay 的 [InstantUnify](https://www.curseforge.com/minecraft/mc-mods/instantunify) 与其延续版 GOOGLEPOX 的 [InstantUnify Reforged](https://www.curseforge.com/minecraft/mc-mods/instantunify-reforged) 的非官方延续版。
 
 ## 功能
 
