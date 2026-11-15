@@ -1,3 +1,5 @@
+![InstantUnify Unofficial Version](https://raw.githubusercontent.com/Huziyang520/InstantUnify-Unofficial-Version/26.1.2/src/main/resources/icon.png)
+
 # InstantUnify Unofficial Version
 
 Unifies duplicate materials. When several mods add their own version of the same material — copper ingots, tin ore,
@@ -6,6 +8,8 @@ This mod replaces them with one single version, so a pack behaves as if only one
 
 This is an unofficial continuation of [InstantUnify Reforged](https://www.curseforge.com/minecraft/mc-mods/instantunify-reforged)
 by GOOGLEPOX, rebuilt and extended.
+
+![What InstantUnify does](https://raw.githubusercontent.com/Huziyang520/InstantUnify-Unofficial-Version/26.1.2/promo.png)
 
 ## Features
 
