@@ -2,8 +2,10 @@ package com.huziyang520.instantunify;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
@@ -23,7 +25,16 @@ public final class InstantUnifyConfig {
         USE_WHITELIST,
         USE_BLACKLIST,
         USE_BOTH_LISTS,
-        USE_NO_LIST
+        USE_NO_LIST;
+
+        /**
+         * Shown by the configuration screen; without this it would print the constant name. The method is
+         * declared here rather than through an interface because the screen mod is client only and this enum is
+         * loaded on a dedicated server as well.
+         */
+        public Component getTranslatedName() {
+            return Component.translatable("instantunify.config.listMode." + this.name().toLowerCase(Locale.ROOT));
+        }
     }
 
     /**
@@ -176,7 +187,10 @@ public final class InstantUnifyConfig {
                 "A name written as '<tag>\\/.+' covers the tag itself and everything below it")
                 .defineList("whitelist", DEFAULT_WHITELIST, STRING_ELEMENT);
 
+        // Every value that stays on the settings screen carries its own translation key, so the settings screen
+        // and the list editor share one set of names in all languages.
         LIST_MODE = b.comment("How the two lists above are combined")
+                .translation("instantunify.config.listMode")
                 .defineEnum("listMode", DEFAULT_LIST_MODE);
 
         PREFERRED_MODS = b.comment("Preferred Mods: the first mod in this list that provides a material wins")
@@ -206,25 +220,29 @@ public final class InstantUnifyConfig {
         SAME_MOD_NO_UNIFY = b.comment(
                 "Never unify two items of the same mod with each other",
                 "On by default: mods ship variants that only make sense next to each other")
+                .translation("instantunify.config.sameModNoUnify")
                 .define("sameModNoUnify", DEFAULT_SAME_MOD_NO_UNIFY);
 
-        b.push("Unify event");
-        DROP = b.comment("Unify when items drop").define("drop", DEFAULT_DROP);
-        DEATH = b.comment("Unify drops when entities die").define("death", DEFAULT_DEATH);
-        SECOND = b.comment("Unify every second items in player's inventory").define("second", DEFAULT_SECOND);
-        CHANGE = b.comment("Unify items in player's inventory when they change").define("change", DEFAULT_CHANGE);
-        GUI = b.comment("Unify items when a container is opened (writes into containers)").define("gui", DEFAULT_GUI);
+        b.translation("instantunify.config.category.events").push("Unify event");
+        DROP = b.comment("Unify when items drop").translation("instantunify.config.drop").define("drop", DEFAULT_DROP);
+        DEATH = b.comment("Unify drops when entities die").translation("instantunify.config.death").define("death", DEFAULT_DEATH);
+        SECOND = b.comment("Unify every second items in player's inventory").translation("instantunify.config.second").define("second", DEFAULT_SECOND);
+        CHANGE = b.comment("Unify items in player's inventory when they change").translation("instantunify.config.change").define("change", DEFAULT_CHANGE);
+        GUI = b.comment("Unify items when a container is opened (writes into containers)").translation("instantunify.config.gui").define("gui", DEFAULT_GUI);
         HARVEST = b.comment("Unify loot table output (block drops, mob drops, chests, fishing)")
+                .translation("instantunify.config.harvest")
                 .define("harvest", DEFAULT_HARVEST);
         b.pop();
 
-        b.push("performance");
+        b.translation("instantunify.config.category.performance").push("performance");
         PERFORMANCE_INDEX_CACHE = b.comment(
                 "Cache the material index (tag fingerprint -> dominant item) instead of scanning the item registry on every drop",
                 "Turning this off restores the slow behaviour, useful for troubleshooting")
+                .translation("instantunify.config.indexCache")
                 .define("indexCache", DEFAULT_INDEX_CACHE);
         PERFORMANCE_LAZY_INDEX_REFRESH_SECONDS = b.comment(
                 "Rebuild the material index automatically after this many seconds, 0 = rebuild only on tag/config changes")
+                .translation("instantunify.config.lazyIndexRefreshSeconds")
                 .defineInRange("lazyIndexRefreshSeconds", DEFAULT_LAZY_INDEX_REFRESH_SECONDS, 0, 86400);
         b.pop();
 

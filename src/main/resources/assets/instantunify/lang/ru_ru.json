@@ -55,5 +55,6 @@
   "instantunify.editor.resetAll": "Сбросить все списки",
   "instantunify.editor.add": "Добавить запись",
   "instantunify.editor.cancel": "Отмена",
-  "instantunify.config.openSettings": "Настройки"
+  "instantunify.config.openSettings": "Настройки",
+  "instantunify.configuration.title": "Настройки InstantUnify"
 }

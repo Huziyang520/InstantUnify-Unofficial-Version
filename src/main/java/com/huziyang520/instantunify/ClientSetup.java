@@ -1,24 +1,23 @@
 package com.huziyang520.instantunify;
 
-import net.minecraftforge.fml.ModList;
+import com.huziyang.neoconfigurationscreenport.forge.ConfigScreenRegistration;
 
 /**
- * Gate for the optional client only integration.
+ * Client only entry point of the in-game screens.
  * <p>
- * This class deliberately references no class of the optional dependency, so the JVM never has to load any of
- * them when the dependency is missing. {@link ClothConfigIntegration} is only touched after the presence check.
+ * The "Config" button of the mod list opens {@link ConfigHubScreen}, which leads to the settings screen of the
+ * prerequisite mod and to the list editor. Nothing registers that for other mods, so it happens here.
+ * <p>
+ * Only the client side branch of the mod constructor calls this, so no client only class of the prerequisite is
+ * ever loaded on a dedicated server.
  */
 public final class ClientSetup {
-
-    private static final String CLOTH_CONFIG_MOD_ID = "cloth_config";
 
     private ClientSetup() {
     }
 
     public static void init() {
-        if (!ModList.get().isLoaded(CLOTH_CONFIG_MOD_ID)) {
-            return;
-        }
-        ClothConfigIntegration.register();
+        ConfigScreenRegistration.register(InstantUnify.MOD_ID,
+                (modContainer, parent) -> new ConfigHubScreen(parent, modContainer));
     }
 }

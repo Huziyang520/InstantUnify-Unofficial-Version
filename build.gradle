@@ -123,18 +123,15 @@ repositories {
     // Mirrors are placed before the official sources.
     maven { name = 'AliyunPublic'; url = 'https://maven.aliyun.com/repository/public' }
     maven { name = 'AliyunGradlePlugin'; url = 'https://maven.aliyun.com/repository/gradle-plugin' }
-
-    // Cloth Config API (optional integration, see src/main/java/.../client)
-    maven { name = 'Shedaniel'; url = 'https://maven.shedaniel.me/' }
 }
 
 dependencies {
     // The Minecraft/Forge userdev artifact, set up by ForgeGradle.
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    // Cloth Config is an optional integration: compile-only, never shaded, never a hard dependency.
-    // Forge artifacts are published with official mappings, so no fg.deobf is needed.
-    compileOnly("me.shedaniel.cloth:cloth-config-forge:${cloth_config_version}") { transitive = false }
+    // The configuration screen comes from a required prerequisite that is not on any maven yet, so its jar is
+    // placed in libs/ (not tracked) and only used to compile against; the game loads the installed jar.
+    compileOnly fileTree(dir: 'libs', include: ['*.jar'])
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

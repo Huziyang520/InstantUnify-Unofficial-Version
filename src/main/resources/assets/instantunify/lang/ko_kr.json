@@ -55,5 +55,6 @@
   "instantunify.editor.resetAll": "모든 목록 초기화",
   "instantunify.editor.add": "항목 추가",
   "instantunify.editor.cancel": "취소",
-  "instantunify.config.openSettings": "설정"
+  "instantunify.config.openSettings": "설정",
+  "instantunify.configuration.title": "InstantUnify 설정"
 }

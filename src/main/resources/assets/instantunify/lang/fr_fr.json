@@ -55,5 +55,6 @@
   "instantunify.editor.resetAll": "Réinitialiser toutes les listes",
   "instantunify.editor.add": "Ajouter une entrée",
   "instantunify.editor.cancel": "Annuler",
-  "instantunify.config.openSettings": "Paramètres"
+  "instantunify.config.openSettings": "Paramètres",
+  "instantunify.configuration.title": "Configuration d'InstantUnify"
 }

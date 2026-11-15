@@ -55,5 +55,6 @@
   "instantunify.editor.resetAll": "重置全部列表",
   "instantunify.editor.add": "添加条目",
   "instantunify.editor.cancel": "取消",
-  "instantunify.config.openSettings": "设置"
+  "instantunify.config.openSettings": "设置",
+  "instantunify.configuration.title": "瞬间统一 配置"
 }

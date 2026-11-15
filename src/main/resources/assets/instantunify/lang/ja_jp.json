@@ -55,5 +55,6 @@
   "instantunify.editor.resetAll": "すべてのリストをリセット",
   "instantunify.editor.add": "項目を追加",
   "instantunify.editor.cancel": "キャンセル",
-  "instantunify.config.openSettings": "設定"
+  "instantunify.config.openSettings": "設定",
+  "instantunify.configuration.title": "InstantUnify 設定"
 }

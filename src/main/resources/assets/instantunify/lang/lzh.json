@@ -55,5 +55,6 @@
   "instantunify.editor.resetAll": "復諸名錄",
   "instantunify.editor.add": "增一項",
   "instantunify.editor.cancel": "罷",
-  "instantunify.config.openSettings": "設置"
+  "instantunify.config.openSettings": "設置",
+  "instantunify.configuration.title": "瞬時統一 設"
 }
